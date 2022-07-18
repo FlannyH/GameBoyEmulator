@@ -13,7 +13,18 @@ impl GameBoy {
             io: [0xFF; 0x80],
             hram: [0xFF; 0x7F],
             ie: 0,
+            ime: 0,
             pc: 0,
+            sp: 0,
+            reg_a: 0,
+            reg_f: 0,
+            reg_b: 0,
+            reg_c: 0,
+            reg_d: 0,
+            reg_e: 0,
+            reg_h: 0,
+            reg_l: 0,
+            curr_cycles_to_wait: 0,
         };
 
         // Init RNG
@@ -45,14 +56,14 @@ impl GameBoy {
 
     pub(in crate) fn render_debug(&self, buffer: &mut Vec<u32>) {
         // Debug rendering
-        let VRAM_BASE = 0x8000;
+        let vram_base = 0x8000;
         // Loop over each tile
         for tile_y in 0..24 as usize {
             for tile_x in 0..16 as usize {
                 // Loop over each pixel in a tile
                 for pixel_y in 0..8 {
                     // Calculate the tile address for the current pixel
-                    let tile_address = VRAM_BASE + tile_y * 0x0100 + tile_x * 0x010 + pixel_y * 2;
+                    let tile_address = vram_base + tile_y * 0x0100 + tile_x * 0x010 + pixel_y * 2;
                     let tile_address = tile_address as u16;
 
                     // Get the 2 bytes for the pixel row, where row_1 is the LSB and row_2 the MSB

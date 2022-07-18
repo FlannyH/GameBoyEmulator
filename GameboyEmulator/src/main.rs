@@ -8,11 +8,10 @@ const PIXEL_SCALE: usize = 2;
 
 fn main() {
     // Turn on the Game Boy
-    let mut game_boy = GameBoy::new();
+    let game_boy = GameBoy::new();
 
     // Create a window
     let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
-    let mut rng = rand::thread_rng();
 
     let mut window = Window::new(
         "Test - ESC to exit",
