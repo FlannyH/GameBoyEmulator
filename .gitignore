@@ -12,3 +12,6 @@ Cargo.lock
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+
+# Not sure if it's legal to push the game boy boot rom, so just in case:
+dmg_boot.bin
