@@ -6,7 +6,16 @@ pub mod gb_memory_operations {
             match address {
                 // ROM bank 0
                 0x0000..=0x3FFF => {
-                    todo!();
+                    // TODO: bootrom support
+                    if self.rom_chip_enabled && address < 0x0100 {
+                        return self.bios[address as usize];
+                    }
+
+                    if self.rom.len() > 0 {
+                        self.rom[(address as usize) % self.rom.len()]
+                    } else {
+                        0xFF
+                    }
                 }
                 // ROM bank 1 or higher
                 0x4000..=0x7FFF => {
@@ -58,11 +67,13 @@ pub mod gb_memory_operations {
             match address {
                 // ROM bank 0
                 0x0000..=0x3FFF => {
-                    todo!();
+                    // TODO: implement mapper stuff
+                    ()
                 }
                 // ROM bank 1 or higher
                 0x4000..=0x7FFF => {
-                    todo!();
+                    // TODO: implement mapper stuff
+                    ()
                 }
                 // VRAM bank 0 or 1
                 0x8000..=0x9FFF => {
@@ -116,13 +127,23 @@ pub mod gb_memory_operations {
             self.pc += 1;
             let byte2 = self.fetch_byte_from_memory(self.pc) as u16;
             self.pc += 1;
-            return byte1 + byte2 << 8;
+            byte1 + (byte2 << 8)
         }
         pub(in super::super) fn fetch_short_from_memory(&self, address: u16) -> u16 {
             let byte1 = self.fetch_byte_from_memory(address) as u16;
             let address = address + 1;
             let byte2 = self.fetch_byte_from_memory(address) as u16;
             return byte1 + byte2 << 8;
+        }
+
+        pub(in super::super) fn store8_to_pointer16(&mut self, h: u8, l: u8, value: u8) {
+            let address = (h as u16) << 8 | (l as u16);
+            self.store_byte_to_memory(address, value);
+        }
+
+        pub(in super::super) fn load8_from_pointer16(&mut self, h: u8, l: u8) -> u8 {
+            let address = (h as u16) << 8 | (l as u16);
+            self.fetch_byte_from_memory(address)
         }
     }
 }
