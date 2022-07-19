@@ -18,12 +18,12 @@ impl GameBoy {
             }
             3 => {
                 // Pixel drawing
-                // If this is the first cycle in this mode, set the PPU's tilemap location, + the amount of pixels to throw away
+                // If this is the first cycle in this mode, set the PPU's tilemap location, + the amount of pixels to throw away, and then clear the FIFO
                 if self.ppu_dots_into_curr_mode == 1 {
                     self.ppu_lx = 0;
                     self.ppu_tilemap_x = self.io[0x43];
                     self.ppu_tilemap_y = self.io[0x42].wrapping_add(self.ppu_ly);
-                    self.ppu_pixels_to_discard = self.io[0x43] & 0x07;
+                    self.ppu_pixels_to_discard = self.io[0x43] & 0x07;  
                 }
 
                 // If the PPU FIFO is dry, fetch 8 pixels
@@ -71,6 +71,7 @@ impl GameBoy {
                             Err(_e) => {println!("Somehow the pixel fifo can't be added to? This is strange"); panic!();}
                         };
                     }
+                    self.ppu_tilemap_x = self.ppu_tilemap_x.wrapping_add(8);
                 }
 
                 // Push a pixel
@@ -82,20 +83,24 @@ impl GameBoy {
                         let curr_pixel_color = self.io[0x47 + curr_pixel_index.source as usize]
                             >> (curr_pixel_index.color * 2)
                             & 0x03;
-                        let final_color: u32 = ((curr_pixel_color as u32) * (222 / 3)) * 0x00010101;
+                        let final_color: u32 = (((curr_pixel_color ^ 0b11) as u32) * (235 / 3)) * 0x00010101;
                         if (self.io[0x40] & 0x80) == 0 {
                             self.framebuffer[self.ppu_lx as usize + self.ppu_ly as usize * 160] =
                                 0xFFFFFFFF; // TODO: palettes?
                         } else {
                             self.framebuffer[self.ppu_lx as usize + self.ppu_ly as usize * 160] =
-                                !final_color; // TODO: palettes?
+                                final_color; // TODO: palettes?
                         }
                         self.ppu_lx += 1;
                     }
-                    self.ppu_tilemap_x = self.ppu_tilemap_x.wrapping_add(1);
                 }
 
                 if self.ppu_lx == 160 {
+                    // Clear FIFO
+                    while (self.ppu_fifo.size() > 0)
+                    {
+                        let _ = self.ppu_fifo.remove();
+                    }
                     self.ppu_dots_into_curr_mode = 0;
                     self.ppu_mode = 0; // Go to H-blank
                 }
