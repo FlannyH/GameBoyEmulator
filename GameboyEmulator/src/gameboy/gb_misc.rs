@@ -1,9 +1,9 @@
-use crate::{PIXEL_SCALE, WIDTH};
+use crate::{WIDTH};
 use queues::queue;
 use queues::Queue;
 use rand::Rng;
 
-use super::{GameBoy, PpuFifoElement};
+use super::{GameBoy};
 
 impl GameBoy {
     pub(in crate) fn new() -> GameBoy {

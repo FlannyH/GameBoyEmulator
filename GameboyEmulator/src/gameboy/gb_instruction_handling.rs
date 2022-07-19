@@ -10,26 +10,26 @@ impl GameBoy {
             //self.print_reg_state();
             self.run_ppu_cycle();
             self.run_ppu_cycle();
-            let mut stdin = io::stdin();
-            if (self.rom_chip_enabled == false) {
-                println!("Opcode: ${:02X}, PC: ${:04X}", self.last_opcode, self.pc);
-                self.print_reg_state();
-                let _ = stdin.read(&mut [0u8]).unwrap();
-                let _ = stdin.read(&mut [0u8]).unwrap();
+            let mut _stdin = io::stdin();
+            if self.rom_chip_enabled == false {
+                //println!("Opcode: ${:02X}, PC: ${:04X}", self.last_opcode, self.pc);
+                //self.print_reg_state();
+                //let _ = _stdin.read(&mut [0u8]).unwrap();
+                //let _ = _stdin.read(&mut [0u8]).unwrap();
             }
-            if (prev != self.ppu_ly && self.ppu_ly % 144 == 0) {
+            if prev != self.ppu_ly && self.ppu_ly % 144 == 0 {
                 break;
             }
-            if (self.rom_chip_enabled == false) {
-                break;
-            }
+            //if (self.rom_chip_enabled == false) {
+            //    break;
+            //}
         }
     }
 
     pub(in super::super) fn process_next_instruction(&mut self) {
         self.times[self.last_opcode as usize] = self.curr_cycles_to_wait as u8;
         self.curr_cycles_to_wait = 0;
-        if (self.curr_cycles_to_wait > 0) {
+        if self.curr_cycles_to_wait > 0 {
             self.curr_cycles_to_wait -= 1;
         }
         // Read byte from PC
@@ -38,33 +38,18 @@ impl GameBoy {
 
         // Pass it to a bunch of functions, let them handle it. If none of them handle it, this is an invalid opcode, and we should hang.
         if self.handle_misc_instructions(opcode) {
-            if (self.rom_chip_enabled == false) {
-                println!("handled by misc");
-            }
             return;
         }
         if self.handle_load_instructions(opcode) {
-            if (self.rom_chip_enabled == false) {
-                println!("handled by load");
-            }
             return;
         }
         if self.handle_arithmetic_instructions(opcode) {
-            if (self.rom_chip_enabled == false) {
-                println!("handled by arithmetic");
-            }
             return;
         }
         if self.handle_branch_instructions(opcode) {
-            if (self.rom_chip_enabled == false) {
-                println!("handled by branch");
-            }
             return;
         }
         if self.handle_incdec_instructions(opcode) {
-            if (self.rom_chip_enabled == false) {
-                println!("handled by incdec");
-            }
             return;
         }
 
@@ -80,7 +65,7 @@ impl GameBoy {
             0x00 => return true, // NOP - no operation
             0x07 => self.reg_a = self.rlc(self.reg_a),
             0x0F => self.reg_a = self.rrc(self.reg_a),
-            0x10 => todo!(), // STOP
+            0x10 => {self.fetch_next_byte_from_pc();}, // STOP
             0x17 => self.reg_a = self.rl(self.reg_a),
             0x1F => self.reg_a = self.rr(self.reg_a),
             //0x76 => self.curr_cycles_to_wait = 40000000, // HALT

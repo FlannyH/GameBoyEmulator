@@ -27,7 +27,7 @@ pub mod gb_memory_operations {
                 // VRAM bank 0 or 1
                 0x8000..=0x9FFF => {
                     // TODO: make sure this only returns the right value when PPU is unlocked, otherwise return 0xFF
-                    if (self.ppu_mode != 3) {
+                    if self.ppu_mode != 3 {
                         self.vram[(address & 0x1FFF) as usize]
                     } else {
                         0xFF

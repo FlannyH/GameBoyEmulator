@@ -62,10 +62,14 @@ impl GameBoy {
                         if row_high & (1 << (7 - x)) > 0 {
                             pixel += 2;
                         }
-                        self.ppu_fifo.add(PpuFifoElement {
+                        match self.ppu_fifo.add(PpuFifoElement {
                             color: pixel,
                             source: 0,
-                        });
+                        })
+                        {
+                            Ok(_e) => (),
+                            Err(_e) => {println!("Somehow the pixel fifo can't be added to? This is strange"); panic!();}
+                        };
                     }
                 }
 
@@ -79,7 +83,7 @@ impl GameBoy {
                             >> (curr_pixel_index.color * 2)
                             & 0x03;
                         let final_color: u32 = ((curr_pixel_color as u32) * (222 / 3)) * 0x00010101;
-                        if ((self.io[0x40] & 0x80) == 0) {
+                        if (self.io[0x40] & 0x80) == 0 {
                             self.framebuffer[self.ppu_lx as usize + self.ppu_ly as usize * 160] =
                                 0xFFFFFFFF; // TODO: palettes?
                         } else {
@@ -131,7 +135,7 @@ impl GameBoy {
         // Update IO registers
         self.io[0x41] &= 0b11111000;
         self.io[0x41] |= self.ppu_mode & 0x03;
-        if (self.ppu_ly == self.io[0x45]) {
+        if self.ppu_ly == self.io[0x45] {
             self.io[0x41] |= 0x04;
         }
         self.io[0x41] |= self.ppu_mode & 0x03;

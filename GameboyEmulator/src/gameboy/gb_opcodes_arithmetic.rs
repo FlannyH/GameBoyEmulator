@@ -81,13 +81,13 @@ impl GameBoy {
             let index = (opcode & 0b00111000) >> 3;
 
             // The inc and dec instructions are right next to each other in the opcode table, so the LSB can be used to determine that
-            let inc_or_dec = (opcode & 0b00000001);
+            let inc_or_dec = opcode & 0b00000001;
 
             // Get the value
             let mut reg_value = self.load_reg(index);
 
             // Inc or Dec it, depending on that LSB
-            if (inc_or_dec == 0) {
+            if inc_or_dec == 0 {
                 reg_value = self.inc8(reg_value);
             } else {
                 reg_value = self.dec8(reg_value);
@@ -119,6 +119,19 @@ impl GameBoy {
                 dec16(&mut sp_h, &mut sp_l);
                 self.sp = (sp_h as u16) << 8 | (sp_l as u16);
             }
+            // add sp, r8
+            0xE8 => {
+                // Prepare parameters
+                let mut s = (self.sp >> 8) as u8;
+                let mut p = (self.sp & 0xFF) as u8;
+                let value_to_add = self.fetch_next_byte_from_pc();
+
+                // Perform addition
+                (s, p) = self.add_16_s8(s, p, value_to_add);
+
+                // Set SP
+                self.sp = ((s as u16) << 8) | ((p as u16));
+            }
             // scf, ccf, cpl
             0x37 => self.reg_f = (self.reg_f & FlagMask::ZERO as u8) | (FlagMask::CARRY as u8),
             0x3F => {
@@ -129,6 +142,47 @@ impl GameBoy {
                 self.reg_f |= FlagMask::HALF as u8;
                 self.reg_f |= FlagMask::NEG as u8;
                 self.reg_a = !self.reg_a;
+            }
+            // daa
+            0x27 => {
+                let mut temp_a = self.reg_a as u16;
+                if (self.reg_f & (FlagMask::NEG as u8)) == 0
+                {
+                    if (self.reg_f & (FlagMask::CARRY as u8) > 0) || temp_a > 0x99
+                    {
+                        temp_a += 0x60;
+                    }
+                    if (self.reg_f & (FlagMask::HALF as u8) > 0) || (temp_a & 0x0F) > 0x09
+                    {
+                        temp_a += 0x06;
+                    }
+                }
+                else
+                {
+        
+                    if (self.reg_f & (FlagMask::CARRY as u8)) > 0
+                    {
+                        temp_a -= 0x60;
+                    }
+                    if (self.reg_f & (FlagMask::HALF as u8)) > 0
+                    {
+                        temp_a -= 0x06;
+                    }
+                }
+
+                self.reg_f &= FlagMask::NEG as u8;
+
+                if (self.reg_f & (FlagMask::CARRY as u8)) == 0
+                {
+                    if temp_a > 0xFF
+                    {
+                        self.reg_f |= FlagMask::CARRY as u8;
+                    }
+                }
+                self.reg_a = (temp_a & 0xFF) as u8;
+                if self.reg_a == 0{
+                    self.reg_f |= FlagMask::ZERO as u8;
+                }
             }
             _ => return false,
         }

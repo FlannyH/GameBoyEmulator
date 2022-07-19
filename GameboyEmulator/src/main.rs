@@ -1,12 +1,9 @@
 mod gameboy;
 use gameboy::GameBoy;
 use minifb::{Key, Window, WindowOptions};
-use std::io;
-use std::io::prelude::*;
 
 const WIDTH: usize = 1600;
 const HEIGHT: usize = 900;
-const PIXEL_SCALE: usize = 2;
 
 fn main() {
     // Get our Game Boy
@@ -27,7 +24,7 @@ fn main() {
     //window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
 
     // Insert a cartridge
-    game_boy.insert_cartridge("../GameboyEmulator/test_roms/test_bank.gbc");
+    game_boy.insert_cartridge("../GameboyEmulator/test_roms/cpu_instrs.gb");
 
     // Main loop
     while window.is_open() && !window.is_key_down(Key::Escape) {

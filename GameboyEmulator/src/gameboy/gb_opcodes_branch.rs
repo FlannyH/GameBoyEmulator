@@ -227,9 +227,6 @@ impl GameBoy {
                 self.reg_a = (popped >> 8) as u8;
                 self.reg_f = (popped & 0xF0) as u8;
             }
-            0xE9 => {
-                self.jump_absolute((self.reg_h as u16) << 8 | (self.reg_l as u16));
-            }
             _ => return false,
         }
         return true;

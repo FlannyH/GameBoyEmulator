@@ -163,10 +163,10 @@ impl GameBoy {
         self.reg_f &= FlagMask::CARRY as u8;
         let value_before = value;
         let value_after = value.wrapping_add(1);
-        if (value_before & 0xF0 != value_after & 0xF0) {
+        if value_before & 0xF0 != value_after & 0xF0 {
             self.reg_f |= FlagMask::HALF as u8;
         }
-        if (value_after == 0x00) {
+        if value_after == 0x00 {
             self.reg_f |= FlagMask::ZERO as u8;
         }
         return value_after;
