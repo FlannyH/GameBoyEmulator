@@ -13,20 +13,17 @@ impl GameBoy {
         // Reset the flag register
         self.reg_f = 0x00;
 
-        // First do the lower 4 bits
-        let low = (a & 0x0F) + ((b + carry) & 0x0F);
+        //Do a 16 bit subtraction
+        let a16 = (a as u16) + ((b as u16) + (carry as u16));
 
-        // Handle half-carry flag
-        if low >= 0x10 {
-            self.reg_f |= FlagMask::HALF as u8;
+        // Carry flag
+        if (a16 >= 0x100) {
+            self.reg_f |= FlagMask::CARRY as u8;
         }
 
-        // Then do the upper 4 bits
-        let high = ((a >> 4) & 0x0F) + (((b + carry) >> 4) & 0x0F);
-
-        // Handle carry flag
-        if high >= 0x10 {
-            self.reg_f |= FlagMask::CARRY as u8;
+        // Half flag
+        if a16 & 0xF0 != a as u16 & 0xF0 {
+            self.reg_f |= FlagMask::HALF as u8;
         }
 
         // Add the low and high bits together
@@ -50,20 +47,17 @@ impl GameBoy {
         // Reset the flag register and set the negative flag
         self.reg_f = 0x00 | FlagMask::NEG as u8;
 
-        // First do the lower 4 bits
-        let low = 0x10 + (a & 0x0F) - ((b + borrow) & 0x0F);
+        //Do a 16 bit subtraction
+        let a16 = (0x100 + (a as u16)) - ((b as u16) + (borrow as u16));
 
-        // Handle half-borrow flag
-        if low < 0x10 {
-            self.reg_f |= FlagMask::HALF as u8;
+        // Carry flag
+        if (a16 < 0x100) {
+            self.reg_f |= FlagMask::CARRY as u8;
         }
 
-        // Then do the upper 4 bits
-        let high = 0x10 + ((a >> 4) & 0x0F) - (((b + borrow) >> 4) & 0x0F);
-
-        // Handle borrow flag
-        if high < 0x10 {
-            self.reg_f |= FlagMask::CARRY as u8;
+        // Half flag
+        if ((0x10 + ((a as u16) & 0x0F)) - (((b as u16) + (borrow as u16)) & 0x0F)) < 0x10 {
+            self.reg_f |= FlagMask::HALF as u8;
         }
 
         // Add the low and high bits together

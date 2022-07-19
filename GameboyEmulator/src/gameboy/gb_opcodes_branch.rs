@@ -81,7 +81,7 @@ impl GameBoy {
                 let target = self.fetch_next_short_from_pc();
                 self.jump_absolute(target);
             }
-            0xEA => {
+            0xE9 => {
                 // jp hl
                 let target = ((self.reg_h as u16) << 8) | (self.reg_l as u16);
                 self.jump_absolute(target);
@@ -225,7 +225,10 @@ impl GameBoy {
             0xF1 => {
                 let popped = self.pop_stack();
                 self.reg_a = (popped >> 8) as u8;
-                self.reg_f = (popped & 0xFF) as u8;
+                self.reg_f = (popped & 0xF0) as u8;
+            }
+            0xE9 => {
+                self.jump_absolute((self.reg_h as u16) << 8 | (self.reg_l as u16));
             }
             _ => return false,
         }

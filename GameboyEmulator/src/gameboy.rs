@@ -70,10 +70,11 @@ pub struct GameBoy {
     pub(self) reg_l: u8,
 
     // Misc emulation
+    pub(in crate) times: [u8; 256],
     pub(self) curr_cycles_to_wait: u32,
     pub(self) last_opcode: u8,
-    pub(self) times: [u8; 256],
     pub(self) rom_chip_enabled: bool,
+    pub(self) curr_rom_bank: u8,
 }
 
 impl GameBoy {

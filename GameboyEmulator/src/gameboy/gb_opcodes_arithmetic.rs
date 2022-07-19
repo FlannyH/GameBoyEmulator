@@ -1,10 +1,42 @@
-use super::{gb_opcodes_ld::inc16, GameBoy};
+use super::{
+    gb_opcodes_ld::{dec16, inc16},
+    FlagMask, GameBoy,
+};
 
 impl GameBoy {
     pub(in super::super) fn handle_arithmetic_instructions(&mut self, opcode: u8) -> bool {
         // Find the value to use on A
         let mut rh = 0x00;
         let mut found = false;
+
+        // add hl, r16
+        match opcode {
+            0x09 => {
+                (self.reg_h, self.reg_l) =
+                    self.add_16_16(self.reg_h, self.reg_l, self.reg_b, self.reg_c);
+                return true;
+            }
+            0x19 => {
+                (self.reg_h, self.reg_l) =
+                    self.add_16_16(self.reg_h, self.reg_l, self.reg_d, self.reg_e);
+                return true;
+            }
+            0x29 => {
+                (self.reg_h, self.reg_l) =
+                    self.add_16_16(self.reg_h, self.reg_l, self.reg_h, self.reg_l);
+                return true;
+            }
+            0x39 => {
+                (self.reg_h, self.reg_l) = self.add_16_16(
+                    self.reg_h,
+                    self.reg_l,
+                    (self.sp >> 8) as u8,
+                    (self.sp & 0xFF) as u8,
+                );
+                return true;
+            }
+            _ => (),
+        }
 
         // The big block between 0x80 and 0xBF
         if (0x80..=0xBF).contains(&opcode) {
@@ -13,7 +45,7 @@ impl GameBoy {
         }
 
         //The little strips after that
-        if opcode & 0b11000110 == 0b11000110 {
+        if opcode & 0b11000111 == 0b11000110 {
             rh = self.fetch_next_byte_from_pc();
             found = true;
         }
@@ -66,8 +98,8 @@ impl GameBoy {
             return true;
         }
 
-        // inc r16 / dec r16
         match opcode {
+            // inc r16
             0x03 => inc16(&mut self.reg_b, &mut self.reg_c),
             0x13 => inc16(&mut self.reg_d, &mut self.reg_e),
             0x23 => inc16(&mut self.reg_h, &mut self.reg_l),
@@ -76,6 +108,27 @@ impl GameBoy {
                 let mut sp_l = (self.sp & 0xFF) as u8;
                 inc16(&mut sp_h, &mut sp_l);
                 self.sp = (sp_h as u16) << 8 | (sp_l as u16);
+            }
+            // dec r16
+            0x0B => dec16(&mut self.reg_b, &mut self.reg_c),
+            0x1B => dec16(&mut self.reg_d, &mut self.reg_e),
+            0x2B => dec16(&mut self.reg_h, &mut self.reg_l),
+            0x3B => {
+                let mut sp_h = (self.sp >> 8) as u8;
+                let mut sp_l = (self.sp & 0xFF) as u8;
+                dec16(&mut sp_h, &mut sp_l);
+                self.sp = (sp_h as u16) << 8 | (sp_l as u16);
+            }
+            // scf, ccf, cpl
+            0x37 => self.reg_f = (self.reg_f & FlagMask::ZERO as u8) | (FlagMask::CARRY as u8),
+            0x3F => {
+                self.reg_f = (self.reg_f & (FlagMask::ZERO as u8 | FlagMask::CARRY as u8))
+                    ^ (FlagMask::CARRY as u8)
+            }
+            0x2F => {
+                self.reg_f |= FlagMask::HALF as u8;
+                self.reg_f |= FlagMask::NEG as u8;
+                self.reg_a = !self.reg_a;
             }
             _ => return false,
         }

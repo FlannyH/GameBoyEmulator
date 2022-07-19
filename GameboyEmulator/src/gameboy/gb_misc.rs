@@ -42,6 +42,7 @@ impl GameBoy {
             framebuffer: vec![0; 160 * 144],
             times: [0xFF; 0x100],
             last_opcode: 0x00,
+            curr_rom_bank: 1,
         };
 
         // Init RNG
@@ -105,10 +106,11 @@ impl GameBoy {
         tile_h: usize,
         offset_x: usize,
         offset_y: usize,
+        pixel_scale: usize,
     ) {
         // Render outline
-        let end_x = offset_x + tile_w * 16;
-        let end_y = offset_y + tile_h * 16;
+        let end_x = offset_x + tile_w * 8 * pixel_scale;
+        let end_y = offset_y + tile_h * 8 * pixel_scale;
         for x in (offset_x - 1)..=(end_x + 1) {
             buffer[x + (offset_y - 1) * WIDTH] = 0xFFFF00FF;
             buffer[x + (end_y + 1) * WIDTH] = 0xFFFF00FF;
@@ -150,11 +152,11 @@ impl GameBoy {
                         brightness = brightness | brightness << 8;
                         brightness |= 0xFF000000;
 
-                        for y in 0..PIXEL_SCALE {
-                            for x in 0..PIXEL_SCALE {
+                        for y in 0..pixel_scale {
+                            for x in 0..pixel_scale {
                                 // Calculate buffer index for this pixel
-                                let buffer_x = (tile_x * 8 + pixel_x) * PIXEL_SCALE + x + offset_x;
-                                let buffer_y = (tile_y * 8 + pixel_y) * PIXEL_SCALE + y + offset_y;
+                                let buffer_x = (tile_x * 8 + pixel_x) * pixel_scale + x + offset_x;
+                                let buffer_y = (tile_y * 8 + pixel_y) * pixel_scale + y + offset_y;
                                 let buffer_index = buffer_x + buffer_y * WIDTH;
 
                                 // Set the pixel in the buffer

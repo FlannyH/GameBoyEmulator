@@ -3,6 +3,7 @@ pub mod gb_memory_operations {
 
     impl GameBoy {
         pub(in super::super) fn fetch_byte_from_memory(&mut self, address: u16) -> u8 {
+            self.curr_cycles_to_wait += 1;
             match address {
                 // ROM bank 0
                 0x0000..=0x3FFF => {
@@ -19,14 +20,18 @@ pub mod gb_memory_operations {
                 }
                 // ROM bank 1 or higher
                 0x4000..=0x7FFF => {
-                    println!("Trying to read from ROM bank 1+, which is not implemented yet!");
-                    self.print_reg_state();
-                    todo!();
+                    self.rom[(0x4000 * (self.curr_rom_bank as usize)
+                        + ((address & 0x3FFF) as usize))
+                        % self.rom.len()]
                 }
                 // VRAM bank 0 or 1
                 0x8000..=0x9FFF => {
                     // TODO: make sure this only returns the right value when PPU is unlocked, otherwise return 0xFF
-                    self.vram[(address & 0x1FFF) as usize]
+                    if (self.ppu_mode != 3) {
+                        self.vram[(address & 0x1FFF) as usize]
+                    } else {
+                        0xFF
+                    }
                 }
                 // External RAM
                 0xA000..=0xBFFF => {
@@ -66,15 +71,21 @@ pub mod gb_memory_operations {
         }
 
         pub(in super::super) fn store_byte_to_memory(&mut self, address: u16, value: u8) {
+            self.curr_cycles_to_wait += 1;
             match address {
                 // ROM bank 0
                 0x0000..=0x3FFF => {
                     // TODO: implement mapper stuff
-                    ()
+                    if (0x2000..=0x3FFF).contains(&address) {
+                        self.curr_rom_bank = value & 0x1F;
+                        if self.curr_rom_bank == 0 {
+                            self.curr_rom_bank = 1;
+                        }
+                        println!("Switched to rom bank {}", self.curr_rom_bank);
+                    }
                 }
                 // ROM bank 1 or higher
                 0x4000..=0x7FFF => {
-                    // TODO: implement mapper stuff
                     ()
                 }
                 // VRAM bank 0 or 1

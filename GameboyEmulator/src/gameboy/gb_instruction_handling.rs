@@ -1,47 +1,76 @@
+use std::io::{self, Read};
+
 use super::GameBoy;
 
 impl GameBoy {
     pub(in crate) fn run_frame(&mut self) {
-        for i in 0..5120 {
+        loop {
+            let prev = self.ppu_ly;
             self.process_next_instruction();
             //self.print_reg_state();
             self.run_ppu_cycle();
             self.run_ppu_cycle();
+            let mut stdin = io::stdin();
+            if (self.rom_chip_enabled == false) {
+                println!("Opcode: ${:02X}, PC: ${:04X}", self.last_opcode, self.pc);
+                self.print_reg_state();
+                let _ = stdin.read(&mut [0u8]).unwrap();
+                let _ = stdin.read(&mut [0u8]).unwrap();
+            }
+            if (prev != self.ppu_ly && self.ppu_ly % 144 == 0) {
+                break;
+            }
+            if (self.rom_chip_enabled == false) {
+                break;
+            }
         }
     }
 
     pub(in super::super) fn process_next_instruction(&mut self) {
-        //self.times[self.last_opcode as usize] = self.curr_cycles_to_wait as u8;
-        //self.curr_cycles_to_wait = 0;
+        self.times[self.last_opcode as usize] = self.curr_cycles_to_wait as u8;
+        self.curr_cycles_to_wait = 0;
         if (self.curr_cycles_to_wait > 0) {
             self.curr_cycles_to_wait -= 1;
         }
         // Read byte from PC
         let opcode = self.fetch_next_byte_from_pc();
         self.last_opcode = opcode;
-        if (self.rom_chip_enabled == false) {
-            //println!("Opcode: ${:02X}, PC: ${:04X}", opcode, self.pc);
-        }
 
         // Pass it to a bunch of functions, let them handle it. If none of them handle it, this is an invalid opcode, and we should hang.
         if self.handle_misc_instructions(opcode) {
+            if (self.rom_chip_enabled == false) {
+                println!("handled by misc");
+            }
             return;
         }
         if self.handle_load_instructions(opcode) {
+            if (self.rom_chip_enabled == false) {
+                println!("handled by load");
+            }
             return;
         }
         if self.handle_arithmetic_instructions(opcode) {
+            if (self.rom_chip_enabled == false) {
+                println!("handled by arithmetic");
+            }
             return;
         }
         if self.handle_branch_instructions(opcode) {
+            if (self.rom_chip_enabled == false) {
+                println!("handled by branch");
+            }
             return;
         }
         if self.handle_incdec_instructions(opcode) {
+            if (self.rom_chip_enabled == false) {
+                println!("handled by incdec");
+            }
             return;
         }
 
         // If we get here, we have an instruction that we don't know how to process
         println!("--Opcode ${:02X} not implemented!--", opcode);
+        self.print_reg_state();
         panic!();
     }
 
