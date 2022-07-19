@@ -108,7 +108,10 @@ pub mod gb_memory_operations {
                 // I/O registers
                 0xFF00..=0xFF7F => {
                     // TODO: IO behaves differently per value
-                    todo!();
+                    if self.handle_io_register_write(address, value) == false {
+                        println!("--Tried to access memory address ${:04X}, which is an IO register that isn't yet implemented!", address);
+                        todo!();
+                    }
                 }
                 // HRAM
                 0xFF80..=0xFFFE => self.hram[(address & 0x7F) as usize] = value,

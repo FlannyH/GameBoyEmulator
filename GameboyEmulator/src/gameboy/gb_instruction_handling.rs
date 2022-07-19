@@ -12,7 +12,7 @@ impl GameBoy {
         println!("Opcode: ${:02X}", opcode);
 
         // Pass it to a bunch of functions, let them handle it. If none of them handle it, this is an invalid opcode, and we should hang.
-        if self.handle_misc_instructions(&opcode) {
+        if self.handle_misc_instructions(opcode) {
             return;
         }
         if self.handle_load_instructions(opcode) {
@@ -27,12 +27,16 @@ impl GameBoy {
         panic!();
     }
 
-    pub(in super::super) fn handle_misc_instructions(&mut self, opcode: &u8) -> bool {
+    pub(in super::super) fn handle_misc_instructions(&mut self, opcode: u8) -> bool {
         // These are all the special cases that don't fit neatly into one category
         match opcode {
             0x00 => return true, // NOP - no operation
-            0x10 => todo!(),     // STOP
-            0x76 => todo!(),     // HALT
+            0x07 => self.reg_a = self.rlc(self.reg_a),
+            0x0F => self.reg_a = self.rrc(self.reg_a),
+            0x10 => todo!(), // STOP
+            0x17 => self.reg_a = self.rl(self.reg_a),
+            0x1F => self.reg_a = self.rr(self.reg_a),
+            0x76 => todo!(), // HALT
             0xCB => {
                 self.handle_prefixed_instructions(opcode);
             } // CB - prefixed instructions mostly for bit shifting, setting, and clearing
@@ -47,9 +51,5 @@ impl GameBoy {
             _ => return false,
         }
         return true;
-    }
-
-    pub(in super::super) fn handle_prefixed_instructions(&mut self, _opcode: &u8) -> bool {
-        false
     }
 }

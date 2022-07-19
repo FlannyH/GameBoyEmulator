@@ -100,7 +100,6 @@ impl GameBoy {
         // Correct the flags
         self.reg_f &= FlagMask::HALF as u8 | FlagMask::CARRY as u8;
 
-
         // Handle carry. This should not affect flags and inc or dec based on the sign of B
         if self.reg_f & FlagMask::CARRY as u8 > 0x00 {
             if b >= 0x80 {
@@ -170,7 +169,7 @@ impl GameBoy {
 
     pub(in super::super) fn cp_8_8(&mut self, a: u8, b: u8) {
         // This instruction is a SUB instruction without changing the actual register, so A is not mutable
-        let mut a = a;
+        let a = a;
         self.sub_8_8(a, b);
     }
 }

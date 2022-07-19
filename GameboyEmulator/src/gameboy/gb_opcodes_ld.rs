@@ -121,7 +121,7 @@ impl GameBoy {
         return true;
     }
 
-    pub (in super::super) fn load_value_from_register(&mut self, index: u8) -> u8 {
+    pub(in super::super) fn load_value_from_register(&self, index: u8) -> u8 {
         let a;
         match index & 0x07 {
             0 => a = self.reg_b,
@@ -140,7 +140,7 @@ impl GameBoy {
         return a;
     }
 
-    fn store_value_to_register(&mut self, index: u8, value: u8) {
+    pub(in super::super) fn store_value_to_register(&mut self, index: u8, value: u8) {
         match index & 0x07 {
             0 => self.reg_b = value,
             1 => self.reg_c = value,
