@@ -4,7 +4,7 @@
 ## How to compile and run
  - Make sure you have the Rust compiler installed
  - Download or rip the DMG (Original Fat Game Boy) boot rom
- - Create a new folder inside `GameBoyEmulator/GameboyEmulator/` called `bios/` (this step will change in the next push)
+ - Create a new folder inside `GameBoyEmulator/GameboyEmulator/` called `bios/`
  - Put the boot rom file into that new folder with the file name `dmg_boot.bin`
  - Open a command prompt and navigate to the `GameBoyEmulator/GameboyEmulator/` folder
  - Run the command `cargo run` to run it, or `cargo build` to build it
