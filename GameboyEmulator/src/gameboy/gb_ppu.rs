@@ -23,7 +23,7 @@ impl GameBoy {
                     self.ppu_lx = 0;
                     self.ppu_tilemap_x = self.io[0x43];
                     self.ppu_tilemap_y = self.io[0x42].wrapping_add(self.ppu_ly);
-                    self.ppu_pixels_to_discard = self.io[0x43] & 0x07;  
+                    self.ppu_pixels_to_discard = self.io[0x43] & 0x07;
                 }
 
                 // If the PPU FIFO is dry, fetch 8 pixels
@@ -65,10 +65,14 @@ impl GameBoy {
                         match self.ppu_fifo.add(PpuFifoElement {
                             color: pixel,
                             source: 0,
-                        })
-                        {
+                        }) {
                             Ok(_e) => (),
-                            Err(_e) => {println!("Somehow the pixel fifo can't be added to? This is strange"); panic!();}
+                            Err(_e) => {
+                                println!(
+                                    "Somehow the pixel fifo can't be added to? This is strange"
+                                );
+                                panic!();
+                            }
                         };
                     }
                     self.ppu_tilemap_x = self.ppu_tilemap_x.wrapping_add(8);
@@ -83,7 +87,8 @@ impl GameBoy {
                         let curr_pixel_color = self.io[0x47 + curr_pixel_index.source as usize]
                             >> (curr_pixel_index.color * 2)
                             & 0x03;
-                        let final_color: u32 = (((curr_pixel_color ^ 0b11) as u32) * (235 / 3)) * 0x00010101;
+                        let final_color: u32 =
+                            (((curr_pixel_color ^ 0b11) as u32) * (235 / 3)) * 0x00010101;
                         if (self.io[0x40] & 0x80) == 0 {
                             self.framebuffer[self.ppu_lx as usize + self.ppu_ly as usize * 160] =
                                 0xFFFFFFFF; // TODO: palettes?
@@ -97,8 +102,7 @@ impl GameBoy {
 
                 if self.ppu_lx == 160 {
                     // Clear FIFO
-                    while (self.ppu_fifo.size() > 0)
-                    {
+                    while (self.ppu_fifo.size() > 0) {
                         let _ = self.ppu_fifo.remove();
                     }
                     self.ppu_dots_into_curr_mode = 0;

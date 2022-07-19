@@ -65,7 +65,9 @@ impl GameBoy {
             0x00 => return true, // NOP - no operation
             0x07 => self.reg_a = self.rlc(self.reg_a),
             0x0F => self.reg_a = self.rrc(self.reg_a),
-            0x10 => {self.fetch_next_byte_from_pc();}, // STOP
+            0x10 => {
+                self.fetch_next_byte_from_pc();
+            } // STOP
             0x17 => self.reg_a = self.rl(self.reg_a),
             0x1F => self.reg_a = self.rr(self.reg_a),
             //0x76 => self.curr_cycles_to_wait = 40000000, // HALT

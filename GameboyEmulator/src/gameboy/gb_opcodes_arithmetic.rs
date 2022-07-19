@@ -130,7 +130,7 @@ impl GameBoy {
                 (s, p) = self.add_16_s8(s, p, value_to_add);
 
                 // Set SP
-                self.sp = ((s as u16) << 8) | ((p as u16));
+                self.sp = ((s as u16) << 8) | (p as u16);
             }
             // scf, ccf, cpl
             0x37 => self.reg_f = (self.reg_f & FlagMask::ZERO as u8) | (FlagMask::CARRY as u8),
@@ -146,41 +146,31 @@ impl GameBoy {
             // daa
             0x27 => {
                 let mut temp_a = self.reg_a as u16;
-                if (self.reg_f & (FlagMask::NEG as u8)) == 0
-                {
-                    if (self.reg_f & (FlagMask::CARRY as u8) > 0) || temp_a > 0x99
-                    {
+                if (self.reg_f & (FlagMask::NEG as u8)) == 0 {
+                    if (self.reg_f & (FlagMask::CARRY as u8) > 0) || temp_a > 0x99 {
                         temp_a += 0x60;
                     }
-                    if (self.reg_f & (FlagMask::HALF as u8) > 0) || (temp_a & 0x0F) > 0x09
-                    {
+                    if (self.reg_f & (FlagMask::HALF as u8) > 0) || (temp_a & 0x0F) > 0x09 {
                         temp_a += 0x06;
                     }
-                }
-                else
-                {
-        
-                    if (self.reg_f & (FlagMask::CARRY as u8)) > 0
-                    {
+                } else {
+                    if (self.reg_f & (FlagMask::CARRY as u8)) > 0 {
                         temp_a -= 0x60;
                     }
-                    if (self.reg_f & (FlagMask::HALF as u8)) > 0
-                    {
+                    if (self.reg_f & (FlagMask::HALF as u8)) > 0 {
                         temp_a -= 0x06;
                     }
                 }
 
                 self.reg_f &= FlagMask::NEG as u8;
 
-                if (self.reg_f & (FlagMask::CARRY as u8)) == 0
-                {
-                    if temp_a > 0xFF
-                    {
+                if (self.reg_f & (FlagMask::CARRY as u8)) == 0 {
+                    if temp_a > 0xFF {
                         self.reg_f |= FlagMask::CARRY as u8;
                     }
                 }
                 self.reg_a = (temp_a & 0xFF) as u8;
-                if self.reg_a == 0{
+                if self.reg_a == 0 {
                     self.reg_f |= FlagMask::ZERO as u8;
                 }
             }

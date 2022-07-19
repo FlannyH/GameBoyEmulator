@@ -1,9 +1,9 @@
-use crate::{WIDTH};
+use crate::WIDTH;
 use queues::queue;
 use queues::Queue;
 use rand::Rng;
 
-use super::{GameBoy};
+use super::GameBoy;
 
 impl GameBoy {
     pub(in crate) fn new() -> GameBoy {
