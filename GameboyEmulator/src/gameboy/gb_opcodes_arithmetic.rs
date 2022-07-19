@@ -7,22 +7,19 @@ impl GameBoy {
         let mut found = false;
 
         // The big block between 0x80 and 0xBF
-        if (0x80..=0xBF).contains(&opcode)
-        {
+        if (0x80..=0xBF).contains(&opcode) {
             rh = self.load_reg(opcode & 0x07);
             found = true;
         }
 
         //The little strips after that
-        if opcode & 0b11000110 == 0b11000110
-        {
+        if opcode & 0b11000110 == 0b11000110 {
             rh = self.fetch_next_byte_from_pc();
             found = true;
         }
 
         // If we don't have a valid arithmetic opcode, we're done here, let another function try to parse this opcode
-        if found == false
-        {
+        if found == false {
             return false;
         }
 

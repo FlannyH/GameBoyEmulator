@@ -1,7 +1,9 @@
 use crate::{PIXEL_SCALE, WIDTH};
+use queues::queue;
+use queues::Queue;
 use rand::Rng;
 
-use super::GameBoy;
+use super::{GameBoy, PpuFifoElement};
 
 impl GameBoy {
     pub(in crate) fn new() -> GameBoy {
@@ -26,8 +28,20 @@ impl GameBoy {
             reg_e: 0,
             reg_h: 0,
             reg_l: 0,
-            curr_cycles_to_wait: 0,
+            curr_cycles_to_wait: 99999990,
             rom_chip_enabled: true,
+            ppu_lx: 0,
+            ppu_ly: 0,
+            ppu_dots_into_curr_mode: 0,
+            ppu_dots_into_curr_line: 0,
+            ppu_mode: 1,
+            ppu_fifo: queue![],
+            ppu_tilemap_x: 0,
+            ppu_tilemap_y: 0,
+            ppu_pixels_to_discard: 0,
+            framebuffer: vec![0; 160 * 144],
+            times: [0xFF; 0x100],
+            last_opcode: 0x00,
         };
 
         // Init RNG
@@ -67,6 +81,9 @@ impl GameBoy {
             new_game_boy.bios[i] = bios_bytes[i];
         }
 
+        // Init IO registers
+        new_game_boy.init_io_registers();
+
         // Done!
         new_game_boy
     }
@@ -81,7 +98,7 @@ impl GameBoy {
     }
 
     pub(in crate) fn render_memory(
-        &self,
+        &mut self,
         buffer: &mut Vec<u32>,
         memory_start: usize,
         tile_w: usize,
@@ -90,7 +107,6 @@ impl GameBoy {
         offset_y: usize,
     ) {
         // Render outline
-        // Top
         let end_x = offset_x + tile_w * 16;
         let end_y = offset_y + tile_h * 16;
         for x in (offset_x - 1)..=(end_x + 1) {
@@ -121,10 +137,10 @@ impl GameBoy {
                     for pixel_x in 0..8 {
                         // Calculate pixel brightness from 0 to 3
                         let mut brightness = 0;
-                        if ((row_1 >> (7-pixel_x)) & 0x01) > 0 {
+                        if ((row_1 >> (7 - pixel_x)) & 0x01) > 0 {
                             brightness += 1;
                         }
-                        if ((row_2 >> (7-pixel_x)) & 0x01) > 0 {
+                        if ((row_2 >> (7 - pixel_x)) & 0x01) > 0 {
                             brightness += 2;
                         }
 

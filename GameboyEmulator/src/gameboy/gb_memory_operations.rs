@@ -2,7 +2,7 @@ pub mod gb_memory_operations {
     use crate::gameboy::GameBoy;
 
     impl GameBoy {
-        pub(in super::super) fn fetch_byte_from_memory(&self, address: u16) -> u8 {
+        pub(in super::super) fn fetch_byte_from_memory(&mut self, address: u16) -> u8 {
             match address {
                 // ROM bank 0
                 0x0000..=0x3FFF => {
@@ -134,7 +134,7 @@ pub mod gb_memory_operations {
             self.pc += 1;
             byte1 + (byte2 << 8)
         }
-        pub(in super::super) fn fetch_short_from_memory(&self, address: u16) -> u16 {
+        pub(in super::super) fn fetch_short_from_memory(&mut self, address: u16) -> u16 {
             let byte1 = self.fetch_byte_from_memory(address) as u16;
             let address = address + 1;
             let byte2 = self.fetch_byte_from_memory(address) as u16;

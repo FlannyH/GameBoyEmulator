@@ -24,7 +24,7 @@ fn main() {
     .unwrap_or_else(|e| {
         panic!("{}", e);
     });
-    window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
+    //window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
 
     // Insert a cartridge
     game_boy.insert_cartridge("../GameboyEmulator/test_roms/text_on_screen.gb");
@@ -38,6 +38,7 @@ fn main() {
         // Render parts of memory
         game_boy.render_memory(&mut buffer, 0x8000, 16, 24, 8, 8);
         game_boy.render_memory(&mut buffer, 0x0000, 32, 32, 272, 8);
+        game_boy.render_screen(&mut buffer, 792, 8);
 
         window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
         //let _ = stdin.read(&mut [0u8]).unwrap();
