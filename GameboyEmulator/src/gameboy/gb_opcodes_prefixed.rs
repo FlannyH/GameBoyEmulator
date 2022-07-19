@@ -11,7 +11,7 @@ impl GameBoy {
         let opcode = self.fetch_next_byte_from_pc();
 
         // Get the register value to shift
-        let input_value = self.load_value_from_register(opcode & 0x07);
+        let input_value = self.load_reg(opcode & 0x07);
         let mut value_to_store: u8 = 0x00;
 
         // ogh i love the match operator - perform the operation
@@ -31,7 +31,7 @@ impl GameBoy {
 
         // Ignore bit instruction, otherwise write the value to the register
         if (0x40..=0x7F).contains(&opcode) == false {
-            self.store_value_to_register(opcode & 0x07, value_to_store);
+            self.store_reg(opcode & 0x07, value_to_store);
         }
 
         return true;

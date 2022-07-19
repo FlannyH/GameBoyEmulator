@@ -19,6 +19,8 @@ pub mod gb_memory_operations {
                 }
                 // ROM bank 1 or higher
                 0x4000..=0x7FFF => {
+                    println!("Trying to read from ROM bank 1+, which is not implemented yet!");
+                    self.print_reg_state();
                     todo!();
                 }
                 // VRAM bank 0 or 1
@@ -28,6 +30,8 @@ pub mod gb_memory_operations {
                 }
                 // External RAM
                 0xA000..=0xBFFF => {
+                    println!("Trying to read from External RAM, which is not implemented yet!");
+                    self.print_reg_state();
                     todo!();
                 }
                 // WRAM bank 0
@@ -52,10 +56,8 @@ pub mod gb_memory_operations {
                 // Not usable
                 0xFEA0..=0xFEFF => 0xFF,
                 // I/O registers
-                0xFF00..=0xFF7F => {
-                    // TODO: IO behaves differently per value
-                    todo!();
-                }
+                0xFF00..=0xFF7F => self.handle_io_register_read(address),
+
                 // HRAM
                 0xFF80..=0xFFFE => self.hram[(address & 0x7F) as usize],
                 // Interrupts Enable Register

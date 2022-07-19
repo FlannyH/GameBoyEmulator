@@ -30,7 +30,7 @@ impl GameBoy {
         }
 
         // Add the low and high bits together
-        let a = a + b + carry;
+        let a = a.wrapping_add(b + carry);
 
         // Handle zero flag
         if a == 0x00 {
@@ -67,7 +67,7 @@ impl GameBoy {
         }
 
         // Add the low and high bits together
-        let a = a - b + borrow;
+        let a = a.wrapping_sub(b + borrow);
 
         // Handle zero flag
         if a == 0x00 {

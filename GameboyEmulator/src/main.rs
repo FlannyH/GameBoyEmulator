@@ -40,7 +40,7 @@ fn main() {
         game_boy.render_memory(&mut buffer, 0x0000, 32, 32, 272, 8);
 
         window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
-        let _ = stdin.read(&mut [0u8]).unwrap();
-        let _ = stdin.read(&mut [0u8]).unwrap();
+        //let _ = stdin.read(&mut [0u8]).unwrap();
+        //let _ = stdin.read(&mut [0u8]).unwrap();
     }
 }

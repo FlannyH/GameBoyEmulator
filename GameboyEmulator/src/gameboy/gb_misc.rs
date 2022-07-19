@@ -121,10 +121,10 @@ impl GameBoy {
                     for pixel_x in 0..8 {
                         // Calculate pixel brightness from 0 to 3
                         let mut brightness = 0;
-                        if ((row_1 >> pixel_x) & 0x01) > 0 {
+                        if ((row_1 >> (7-pixel_x)) & 0x01) > 0 {
                             brightness += 1;
                         }
-                        if ((row_2 >> pixel_x) & 0x01) > 0 {
+                        if ((row_2 >> (7-pixel_x)) & 0x01) > 0 {
                             brightness += 2;
                         }
 

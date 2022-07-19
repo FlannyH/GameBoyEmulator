@@ -203,6 +203,30 @@ impl GameBoy {
                 self.push_stack(self.pc);
                 self.jump_absolute(0x38);
             }
+            0xC5 => self.push_stack((self.reg_b as u16) << 8 | (self.reg_c as u16)),
+            0xD5 => self.push_stack((self.reg_d as u16) << 8 | (self.reg_e as u16)),
+            0xE5 => self.push_stack((self.reg_h as u16) << 8 | (self.reg_l as u16)),
+            0xF5 => self.push_stack((self.reg_a as u16) << 8 | (self.reg_f as u16)),
+            0xC1 => {
+                let popped = self.pop_stack();
+                self.reg_b = (popped >> 8) as u8;
+                self.reg_c = (popped & 0xFF) as u8;
+            }
+            0xD1 => {
+                let popped = self.pop_stack();
+                self.reg_d = (popped >> 8) as u8;
+                self.reg_e = (popped & 0xFF) as u8;
+            }
+            0xE1 => {
+                let popped = self.pop_stack();
+                self.reg_h = (popped >> 8) as u8;
+                self.reg_l = (popped & 0xFF) as u8;
+            }
+            0xF1 => {
+                let popped = self.pop_stack();
+                self.reg_a = (popped >> 8) as u8;
+                self.reg_f = (popped & 0xFF) as u8;
+            }
             _ => return false,
         }
         return true;

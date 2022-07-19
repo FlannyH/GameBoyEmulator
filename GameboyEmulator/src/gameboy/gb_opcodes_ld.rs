@@ -1,12 +1,14 @@
 use crate::GameBoy;
 
+use super::FlagMask;
+
 impl GameBoy {
     pub(in super::super) fn handle_load_instructions(&mut self, opcode: u8) -> bool {
         // Handle all the register load instructions
         if (0x40..=0x7F).contains(&opcode) {
             // Get the value from B
-            let b = self.load_value_from_register(opcode & 0x07);
-            self.store_value_to_register((opcode >> 3) & 0x07, b);
+            let b = self.load_reg(opcode & 0x07);
+            self.store_reg((opcode >> 3) & 0x07, b);
 
             return true;
         }
@@ -121,7 +123,7 @@ impl GameBoy {
         return true;
     }
 
-    pub(in super::super) fn load_value_from_register(&self, index: u8) -> u8 {
+    pub(in super::super) fn load_reg(&self, index: u8) -> u8 {
         let a;
         match index & 0x07 {
             0 => a = self.reg_b,
@@ -140,7 +142,7 @@ impl GameBoy {
         return a;
     }
 
-    pub(in super::super) fn store_value_to_register(&mut self, index: u8, value: u8) {
+    pub(in super::super) fn store_reg(&mut self, index: u8, value: u8) {
         match index & 0x07 {
             0 => self.reg_b = value,
             1 => self.reg_c = value,
@@ -155,6 +157,33 @@ impl GameBoy {
             7 => self.reg_a = value,
             _ => panic!(),
         }
+    }
+
+    pub(in super::super) fn inc8(&mut self, value: u8) -> u8 {
+        self.reg_f &= FlagMask::CARRY as u8;
+        let value_before = value;
+        let value_after = value.wrapping_add(1);
+        if (value_before & 0xF0 != value_after & 0xF0) {
+            self.reg_f |= FlagMask::HALF as u8;
+        }
+        if (value_after == 0x00) {
+            self.reg_f |= FlagMask::ZERO as u8;
+        }
+        return value_after;
+    }
+
+    pub(in super::super) fn dec8(&mut self, value: u8) -> u8 {
+        self.reg_f &= FlagMask::CARRY as u8;
+        self.reg_f |= FlagMask::NEG as u8;
+        let value_before = value;
+        let value_after = value.wrapping_sub(1);
+        if value_before & 0xF0 != value_after & 0xF0 {
+            self.reg_f |= FlagMask::HALF as u8;
+        }
+        if value_after == 0x00 {
+            self.reg_f |= FlagMask::ZERO as u8;
+        }
+        return value_after;
     }
 }
 

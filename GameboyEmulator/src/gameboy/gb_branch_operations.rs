@@ -22,9 +22,9 @@ impl GameBoy {
     pub(in super::super) fn pop_stack(&mut self) -> u16 {
         let mut popped_value = 0x00;
         popped_value |= self.fetch_byte_from_memory(self.sp) as u16;
-        self.sp -= 1;
+        self.sp += 1;
         popped_value |= (self.fetch_byte_from_memory(self.sp) as u16) << 8;
-        self.sp -= 1;
+        self.sp += 1;
         return popped_value;
     }
 }

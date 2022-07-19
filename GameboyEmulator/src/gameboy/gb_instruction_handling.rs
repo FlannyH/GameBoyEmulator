@@ -2,14 +2,16 @@ use super::GameBoy;
 
 impl GameBoy {
     pub(in crate) fn run_frame(&mut self) {
-        self.process_next_instruction();
-        self.print_reg_state();
+        for i in 0..96 {
+            self.process_next_instruction();
+            //self.print_reg_state();
+        }
     }
 
     pub(in super::super) fn process_next_instruction(&mut self) {
         // Read byte from PC
         let opcode = self.fetch_next_byte_from_pc();
-        println!("Opcode: ${:02X}", opcode);
+        //println!("Opcode: ${:02X}", opcode);
 
         // Pass it to a bunch of functions, let them handle it. If none of them handle it, this is an invalid opcode, and we should hang.
         if self.handle_misc_instructions(opcode) {
@@ -19,6 +21,12 @@ impl GameBoy {
             return;
         }
         if self.handle_arithmetic_instructions(opcode) {
+            return;
+        }
+        if self.handle_branch_instructions(opcode) {
+            return;
+        }
+        if self.handle_incdec_instructions(opcode) {
             return;
         }
 
