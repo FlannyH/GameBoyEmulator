@@ -13,7 +13,7 @@ impl GameBoy {
         // Reset the flag register
         self.reg_f = 0x00;
 
-        //Do a 16 bit subtraction
+        //Do a 16 bit addition
         let a16 = (a as u16) + ((b as u16) + (carry as u16));
 
         // Carry flag
@@ -22,7 +22,8 @@ impl GameBoy {
         }
 
         // Half flag
-        if a16 & 0xF0 != a as u16 & 0xF0 {
+        if ((a & 0x0F) + ((b + carry) & 0x0F)) >= 0x10
+        {
             self.reg_f |= FlagMask::HALF as u8;
         }
 
@@ -92,13 +93,18 @@ impl GameBoy {
         let mut a_h = a_h;
 
         // Correct the flags
-        self.reg_f &= FlagMask::HALF as u8 | FlagMask::CARRY as u8;
+        self.reg_f &= (FlagMask::HALF as u8 | FlagMask::CARRY as u8);
 
         // Handle carry. This should not affect flags and inc or dec based on the sign of B
-        if self.reg_f & FlagMask::CARRY as u8 > 0x00 {
-            if b >= 0x80 {
+        if b >= 0x80
+        {
+            if self.reg_f & FlagMask::CARRY as u8 == 0x00 {
                 a_h -= 1;
-            } else {
+            }
+        }
+        else
+        {
+            if self.reg_f & FlagMask::CARRY as u8 > 0x00 {
                 a_h += 1;
             }
         }

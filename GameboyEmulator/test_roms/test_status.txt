@@ -6,3 +6,4 @@ test_logic2:   ok
 test_stack:    ok
 test_jump:     ok
 test_bank:     ok
+test_daa:      ok

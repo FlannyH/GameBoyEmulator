@@ -148,6 +148,7 @@ impl GameBoy {
                 let mut temp_a = self.reg_a as u16;
                 if (self.reg_f & (FlagMask::NEG as u8)) == 0 {
                     if (self.reg_f & (FlagMask::CARRY as u8) > 0) || temp_a > 0x99 {
+                        self.reg_f |= FlagMask::CARRY as u8;
                         temp_a += 0x60;
                     }
                     if (self.reg_f & (FlagMask::HALF as u8) > 0) || (temp_a & 0x0F) > 0x09 {
@@ -162,16 +163,14 @@ impl GameBoy {
                     }
                 }
 
-                self.reg_f &= FlagMask::NEG as u8;
-
-                if (self.reg_f & (FlagMask::CARRY as u8)) == 0 {
-                    if temp_a > 0xFF {
-                        self.reg_f |= FlagMask::CARRY as u8;
-                    }
-                }
+                self.reg_f &= !(FlagMask::HALF as u8);
                 self.reg_a = (temp_a & 0xFF) as u8;
                 if self.reg_a == 0 {
                     self.reg_f |= FlagMask::ZERO as u8;
+                }
+                else
+                {
+                    self.reg_f &= !(FlagMask::ZERO as u8);
                 }
             }
             _ => return false,
