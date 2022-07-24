@@ -98,11 +98,11 @@ impl GameBoy {
         // Handle carry. This should not affect flags and inc or dec based on the sign of B
         if b >= 0x80 {
             if self.reg_f & FlagMask::CARRY as u8 == 0x00 {
-                a_h.wrapping_sub(1);
+                a_h = a_h.wrapping_sub(1);
             }
         } else {
             if self.reg_f & FlagMask::CARRY as u8 > 0x00 {
-                a_h.wrapping_add(1);
+                a_h = a_h.wrapping_add(1);
             }
         }
         return (a_h, a_l);
