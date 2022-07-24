@@ -1,4 +1,4 @@
-use super::{FlagMask, GameBoy};
+use super::super::{FlagMask, GameBoy};
 
 impl GameBoy {
     pub(in super::super) fn handle_branch_instructions(&mut self, opcode: u8) -> bool {

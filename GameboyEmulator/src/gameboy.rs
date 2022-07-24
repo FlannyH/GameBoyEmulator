@@ -4,19 +4,9 @@ use queues::Queue;
 
 use crate::WIDTH;
 
-mod gb_arithmetic_operations;
-mod gb_branch_operations;
-mod gb_cartridge;
-mod gb_instruction_handling;
-mod gb_io_registers;
-mod gb_memory_operations;
-mod gb_misc;
-mod gb_opcodes_arithmetic;
-mod gb_opcodes_branch;
-mod gb_opcodes_ld;
-mod gb_opcodes_prefixed;
-mod gb_ppu;
-mod gb_prefixed_operations;
+mod cpu;
+mod misc;
+mod ppu;
 
 pub enum FlagMask {
     ZERO = 0x80,

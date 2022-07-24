@@ -1,5 +1,5 @@
-use super::FlagMask;
-use super::GameBoy;
+use super::super::FlagMask;
+use super::super::GameBoy;
 
 impl GameBoy {
     // Add two 8 bit values and set the flags
@@ -22,13 +22,13 @@ impl GameBoy {
         }
 
         // Half flag
-        if ((a & 0x0F) + ((b + carry) & 0x0F)) >= 0x10
+        if ((a & 0x0F) + (b & 0x0F) + (carry & 0x0F)) >= 0x10
         {
             self.reg_f |= FlagMask::HALF as u8;
         }
 
         // Add the low and high bits together
-        let a = a.wrapping_add(b + carry);
+        let a = a.wrapping_add(b.wrapping_add(carry));
 
         // Handle zero flag
         if a == 0x00 {
@@ -57,12 +57,13 @@ impl GameBoy {
         }
 
         // Half flag
-        if ((0x10 + ((a as u16) & 0x0F)) - (((b as u16) + (borrow as u16)) & 0x0F)) < 0x10 {
+        //if ((0x10 + ((a as u16) & 0x0F)) - ((((b) as u16) + (borrow as u16)) & 0x0F)) < 0x10 {
+        if 0x10 + (a & 0x0F) - (b & 0x0F) - (borrow & 0x0F) < 0x10 {
             self.reg_f |= FlagMask::HALF as u8;
         }
 
         // Add the low and high bits together
-        let a = a.wrapping_sub(b + borrow);
+        let a = a.wrapping_sub(b.wrapping_add(borrow));
 
         // Handle zero flag
         if a == 0x00 {
@@ -99,13 +100,13 @@ impl GameBoy {
         if b >= 0x80
         {
             if self.reg_f & FlagMask::CARRY as u8 == 0x00 {
-                a_h -= 1;
+                a_h.wrapping_sub(1);
             }
         }
         else
         {
             if self.reg_f & FlagMask::CARRY as u8 > 0x00 {
-                a_h += 1;
+                a_h.wrapping_add(1);
             }
         }
         return (a_h, a_l);

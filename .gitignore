@@ -16,3 +16,4 @@ Cargo.lock
 # Not sure if it's legal to push the game boy boot rom, so just in case:
 dmg_boot.bin
 times.bin
+GameboyEmulator/ram_dump

@@ -1,6 +1,6 @@
 use crate::GameBoy;
 
-use super::FlagMask;
+use super::super::FlagMask;
 
 impl GameBoy {
     pub(in super::super) fn handle_load_instructions(&mut self, opcode: u8) -> bool {

@@ -1,9 +1,11 @@
+use std::fs;
+
 use crate::WIDTH;
 use queues::queue;
 use queues::Queue;
 use rand::Rng;
 
-use super::GameBoy;
+use super::super::GameBoy;
 
 impl GameBoy {
     pub(in crate) fn new() -> GameBoy {
@@ -96,6 +98,19 @@ impl GameBoy {
         println!("HL :{:02X} {:02X}", self.reg_h, self.reg_l);
         println!("PC :{:02X} {:02X}", self.pc >> 8, self.pc & 0xFF);
         println!("SP :{:02X} {:02X}", self.sp >> 8, self.sp & 0xFF);
+    }
+
+    pub(in crate) fn dump_memory(&mut self, file_path: &str, memory_start: u16, dump_length: u16)
+    {
+        // Get Vec<u8> of all the bytes in the range specified
+        let mut bytes: Vec<u8> = Vec::new();
+        bytes.reserve(dump_length as usize);
+        for x in memory_start..(memory_start+dump_length) {
+            bytes.push(self.fetch_byte_from_memory(x));
+        }
+
+        // Dump to file
+        fs::write(file_path, bytes);
     }
 
     pub(in crate) fn render_memory(

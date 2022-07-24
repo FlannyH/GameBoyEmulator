@@ -1,4 +1,4 @@
-use super::GameBoy;
+use super::super::GameBoy;
 
 impl GameBoy {
     pub(in super::super) fn jump_absolute(&mut self, address: u16) {

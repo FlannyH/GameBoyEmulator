@@ -1,7 +1,7 @@
 use super::{
     gb_opcodes_ld::{dec16, inc16},
-    FlagMask, GameBoy,
 };
+use super::super::{    FlagMask, GameBoy,};
 
 impl GameBoy {
     pub(in super::super) fn handle_arithmetic_instructions(&mut self, opcode: u8) -> bool {
@@ -149,17 +149,17 @@ impl GameBoy {
                 if (self.reg_f & (FlagMask::NEG as u8)) == 0 {
                     if (self.reg_f & (FlagMask::CARRY as u8) > 0) || temp_a > 0x99 {
                         self.reg_f |= FlagMask::CARRY as u8;
-                        temp_a += 0x60;
+                        temp_a = temp_a.wrapping_add(0x60);
                     }
                     if (self.reg_f & (FlagMask::HALF as u8) > 0) || (temp_a & 0x0F) > 0x09 {
-                        temp_a += 0x06;
+                        temp_a = temp_a.wrapping_add(0x06);
                     }
                 } else {
                     if (self.reg_f & (FlagMask::CARRY as u8)) > 0 {
-                        temp_a -= 0x60;
+                        temp_a = temp_a.wrapping_sub(0x60);
                     }
                     if (self.reg_f & (FlagMask::HALF as u8)) > 0 {
-                        temp_a -= 0x06;
+                        temp_a = temp_a.wrapping_sub(0x06);
                     }
                 }
 

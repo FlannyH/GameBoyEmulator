@@ -1,4 +1,5 @@
-use super::GameBoy;
+
+use super::super::GameBoy;
 
 impl GameBoy {
     pub(in super::super) fn init_io_registers(&mut self) {

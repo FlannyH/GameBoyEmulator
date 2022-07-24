@@ -24,7 +24,7 @@ fn main() {
     //window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
 
     // Insert a cartridge
-    game_boy.insert_cartridge("../GameboyEmulator/test_roms/03-op sp,hl.gb");
+    game_boy.insert_cartridge("../GameboyEmulator/test_roms/cpu_instrs.gb");
 
     // Main loop
     while window.is_open() && !window.is_key_down(Key::Escape) {

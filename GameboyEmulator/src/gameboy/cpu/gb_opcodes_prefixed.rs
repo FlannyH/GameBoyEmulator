@@ -1,4 +1,4 @@
-use super::GameBoy;
+use super::super::GameBoy;
 
 impl GameBoy {
     pub(in super::super) fn handle_prefixed_instructions(&mut self, opcode: u8) -> bool {

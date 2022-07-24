@@ -1,6 +1,6 @@
 use std::io::{self, Read};
 
-use super::GameBoy;
+use super::super::GameBoy;
 
 impl GameBoy {
     pub(in crate) fn run_frame(&mut self) {
@@ -70,7 +70,7 @@ impl GameBoy {
             } // STOP
             0x17 => self.reg_a = self.rl(self.reg_a),
             0x1F => self.reg_a = self.rr(self.reg_a),
-            //0x76 => self.curr_cycles_to_wait = 40000000, // HALT
+            0x76 => {}//self.dump_memory("ram_dump", 0xC000, 0x2000), // HALT
             0xCB => {
                 self.handle_prefixed_instructions(opcode);
             } // CB - prefixed instructions mostly for bit shifting, setting, and clearing

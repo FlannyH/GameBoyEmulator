@@ -1,6 +1,6 @@
 use queues::IsQueue;
 
-use super::{GameBoy, PpuFifoElement};
+use super::super::{GameBoy, PpuFifoElement};
 
 impl GameBoy {
     pub(in crate) fn run_ppu_cycle(&mut self) {

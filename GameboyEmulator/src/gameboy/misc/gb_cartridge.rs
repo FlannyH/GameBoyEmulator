@@ -1,4 +1,5 @@
-use super::GameBoy;
+
+use super::super::GameBoy;
 
 impl GameBoy {
     pub(in crate) fn insert_cartridge(&mut self, path: &str) -> bool {
