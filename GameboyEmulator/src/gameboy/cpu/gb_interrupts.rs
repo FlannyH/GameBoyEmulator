@@ -10,9 +10,6 @@ pub enum InterruptMasks {
 
 impl GameBoy {
     pub(super) fn handle_interrupts(&mut self) {
-        // Update timer
-        self.handle_timer();
-
         // If interrupts are not enabled, return
         if self.ime == 0 {
             return;
@@ -67,7 +64,7 @@ impl GameBoy {
     }
 
     // Should be called every CPU cycle
-    fn handle_timer(&mut self) {
+    pub(super) fn handle_timer(&mut self) {
         // Increment internal counter
         self.cpu_cycle_counter += 1;
 
@@ -92,7 +89,7 @@ impl GameBoy {
 
         // Update timer
         if self.cpu_cycle_counter % timer_period == 0 {
-            self.io[0x05] = self.io[0x06].wrapping_add(1);
+            self.io[0x05] = self.io[0x05].wrapping_add(1);
         }
 
         // Handle overflow

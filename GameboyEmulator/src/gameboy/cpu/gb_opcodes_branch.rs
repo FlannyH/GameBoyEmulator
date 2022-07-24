@@ -11,6 +11,7 @@ impl GameBoy {
                 // If the zero flag is not set, branch
                 if self.reg_f & (FlagMask::ZERO as u8) == 0 {
                     self.jump_relative(offset);
+                    self.curr_cycles_to_wait += 1;
                 }
             }
             0x30 => {
@@ -21,6 +22,7 @@ impl GameBoy {
                 // If the carry flag is not set, branch
                 if self.reg_f & (FlagMask::CARRY as u8) == 0 {
                     self.jump_relative(offset);
+                    self.curr_cycles_to_wait += 1;
                 }
             }
             0x18 => {
@@ -36,6 +38,7 @@ impl GameBoy {
                 // If the zero flag is set, branch
                 if self.reg_f & (FlagMask::ZERO as u8) != 0 {
                     self.jump_relative(offset);
+                    self.curr_cycles_to_wait += 1;
                 }
             }
             0x38 => {
@@ -46,6 +49,7 @@ impl GameBoy {
                 // If the carry flag is set, branch
                 if self.reg_f & (FlagMask::CARRY as u8) != 0 {
                     self.jump_relative(offset);
+                    self.curr_cycles_to_wait += 1;
                 }
             }
             0xC2 => {
@@ -126,6 +130,7 @@ impl GameBoy {
             }
             0xC0 => {
                 // ret nz
+                self.curr_cycles_to_wait += 1;
                 if self.reg_f & (FlagMask::ZERO as u8) == 0 {
                     let target = self.pop_stack();
                     self.jump_absolute(target);
@@ -133,6 +138,7 @@ impl GameBoy {
             }
             0xD0 => {
                 // ret nc
+                self.curr_cycles_to_wait += 1;
                 if self.reg_f & (FlagMask::CARRY as u8) == 0 {
                     let target = self.pop_stack();
                     self.jump_absolute(target);
@@ -140,6 +146,7 @@ impl GameBoy {
             }
             0xC8 => {
                 // ret z
+                self.curr_cycles_to_wait += 1;
                 if self.reg_f & (FlagMask::ZERO as u8) != 0 {
                     let target = self.pop_stack();
                     self.jump_absolute(target);
@@ -147,6 +154,7 @@ impl GameBoy {
             }
             0xD8 => {
                 // ret c
+                self.curr_cycles_to_wait += 1;
                 if self.reg_f & (FlagMask::CARRY as u8) != 0 {
                     let target = self.pop_stack();
                     self.jump_absolute(target);

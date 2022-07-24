@@ -2,6 +2,7 @@ use super::super::GameBoy;
 
 impl GameBoy {
     pub(in super::super) fn jump_absolute(&mut self, address: u16) {
+        self.curr_cycles_to_wait += 1;
         self.pc = address;
     }
 

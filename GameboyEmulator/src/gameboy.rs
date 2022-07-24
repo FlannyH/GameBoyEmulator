@@ -63,6 +63,8 @@ pub struct GameBoy {
     pub times: [u8; 256],
     curr_cycles_to_wait: u32,
     last_opcode: u8,
+    last_opcode_cycles: u32,
+    new_instruction_tick: bool,
     rom_chip_enabled: bool,
     curr_rom_bank: u8,
     cpu_cycle_counter: u32,

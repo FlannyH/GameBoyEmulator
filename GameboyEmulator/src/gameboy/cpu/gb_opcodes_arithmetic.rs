@@ -98,24 +98,44 @@ impl GameBoy {
 
         match opcode {
             // inc r16
-            0x03 => inc16(&mut self.reg_b, &mut self.reg_c),
-            0x13 => inc16(&mut self.reg_d, &mut self.reg_e),
-            0x23 => inc16(&mut self.reg_h, &mut self.reg_l),
+            0x03 => {
+                inc16(&mut self.reg_b, &mut self.reg_c);
+                self.curr_cycles_to_wait += 1
+            }
+            0x13 => {
+                inc16(&mut self.reg_d, &mut self.reg_e);
+                self.curr_cycles_to_wait += 1
+            }
+            0x23 => {
+                inc16(&mut self.reg_h, &mut self.reg_l);
+                self.curr_cycles_to_wait += 1
+            }
             0x33 => {
                 let mut sp_h = (self.sp >> 8) as u8;
                 let mut sp_l = (self.sp & 0xFF) as u8;
                 inc16(&mut sp_h, &mut sp_l);
                 self.sp = (sp_h as u16) << 8 | (sp_l as u16);
+                self.curr_cycles_to_wait += 1
             }
             // dec r16
-            0x0B => dec16(&mut self.reg_b, &mut self.reg_c),
-            0x1B => dec16(&mut self.reg_d, &mut self.reg_e),
-            0x2B => dec16(&mut self.reg_h, &mut self.reg_l),
+            0x0B => {
+                dec16(&mut self.reg_b, &mut self.reg_c);
+                self.curr_cycles_to_wait += 1
+            }
+            0x1B => {
+                dec16(&mut self.reg_d, &mut self.reg_e);
+                self.curr_cycles_to_wait += 1
+            }
+            0x2B => {
+                dec16(&mut self.reg_h, &mut self.reg_l);
+                self.curr_cycles_to_wait += 1
+            }
             0x3B => {
                 let mut sp_h = (self.sp >> 8) as u8;
                 let mut sp_l = (self.sp & 0xFF) as u8;
                 dec16(&mut sp_h, &mut sp_l);
                 self.sp = (sp_h as u16) << 8 | (sp_l as u16);
+                self.curr_cycles_to_wait += 1
             }
             // add sp, r8
             0xE8 => {

@@ -4,7 +4,9 @@ use crate::gameboy::FlagMask;
 
 use super::super::GameBoy;
 
-const DEBUG: bool = false;
+const DEBUG_ENABLED: bool = true;
+const DEBUG_BIOS: bool = false;
+const DEBUG_REQUIRE_INPUT: bool = true;
 
 impl GameBoy {
     pub(in crate) fn run_frame(&mut self) {
@@ -18,14 +20,16 @@ impl GameBoy {
             if prev != self.ppu_ly && self.ppu_ly % 144 == 0 {
                 break;
             }
-            if DEBUG {
-                if self.rom_chip_enabled == true {
+            if DEBUG_ENABLED && (self.new_instruction_tick) {
+                if self.rom_chip_enabled == DEBUG_BIOS {
                     println!("Opcode: ${:02X}, PC: ${:04X}", self.last_opcode, self.pc);
                     self.print_reg_state();
-                    let _ = _stdin.read(&mut [0u8]).unwrap();
-                    let _ = _stdin.read(&mut [0u8]).unwrap();
+                    if DEBUG_REQUIRE_INPUT {
+                        let _ = _stdin.read(&mut [0u8]).unwrap();
+                        let _ = _stdin.read(&mut [0u8]).unwrap();
+                    }
                 }
-                if self.rom_chip_enabled == true {
+                if self.rom_chip_enabled == DEBUG_BIOS {
                     break;
                 }
             }
@@ -33,9 +37,18 @@ impl GameBoy {
     }
 
     pub(in super::super) fn process_next_instruction(&mut self) {
+        // Update timer
+        self.handle_timer();
+
         // Wait for previous instruction to finish
+        self.new_instruction_tick = false;
+        if self.curr_cycles_to_wait > 1 {
+            self.curr_cycles_to_wait -= 1;
+            return;
+        }
         if self.curr_cycles_to_wait > 0 {
             self.curr_cycles_to_wait -= 1;
+            self.new_instruction_tick = true;
         }
 
         // Interrupts
@@ -47,18 +60,23 @@ impl GameBoy {
 
         // Pass it to a bunch of functions, let them handle it. If none of them handle it, this is an invalid opcode, and we should hang.
         if self.handle_misc_instructions(opcode) {
+            self.last_opcode_cycles = self.curr_cycles_to_wait;
             return;
         }
         if self.handle_load_instructions(opcode) {
+            self.last_opcode_cycles = self.curr_cycles_to_wait;
             return;
         }
         if self.handle_arithmetic_instructions(opcode) {
+            self.last_opcode_cycles = self.curr_cycles_to_wait;
             return;
         }
         if self.handle_branch_instructions(opcode) {
+            self.last_opcode_cycles = self.curr_cycles_to_wait;
             return;
         }
         if self.handle_incdec_instructions(opcode) {
+            self.last_opcode_cycles = self.curr_cycles_to_wait;
             return;
         }
 

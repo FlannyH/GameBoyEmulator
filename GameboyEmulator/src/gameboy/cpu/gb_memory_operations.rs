@@ -91,6 +91,7 @@ impl GameBoy {
             }
             // External RAM
             0xA000..=0xBFFF => {
+                self.print_reg_state();
                 todo!();
             }
             // WRAM bank 0

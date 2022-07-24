@@ -30,7 +30,7 @@ impl GameBoy {
             reg_e: 0,
             reg_h: 0,
             reg_l: 0,
-            curr_cycles_to_wait: 99999990,
+            curr_cycles_to_wait: 0,
             rom_chip_enabled: true,
             ppu_lx: 0,
             ppu_ly: 0,
@@ -46,6 +46,8 @@ impl GameBoy {
             last_opcode: 0x00,
             curr_rom_bank: 1,
             cpu_cycle_counter: 0,
+            last_opcode_cycles: 0,
+            new_instruction_tick: false,
         };
 
         // Init RNG
@@ -93,12 +95,26 @@ impl GameBoy {
     }
 
     pub(in crate) fn print_reg_state(&self) {
-        println!("AF :{:02X} {:02X}", self.reg_a, self.reg_f);
-        println!("BC :{:02X} {:02X}", self.reg_b, self.reg_c);
-        println!("DE :{:02X} {:02X}", self.reg_d, self.reg_e);
-        println!("HL :{:02X} {:02X}", self.reg_h, self.reg_l);
-        println!("PC :{:02X} {:02X}", self.pc >> 8, self.pc & 0xFF);
-        println!("SP :{:02X} {:02X}", self.sp >> 8, self.sp & 0xFF);
+        println!("AF: {:02X} {:02X}", self.reg_a, self.reg_f);
+        println!("BC: {:02X} {:02X}", self.reg_b, self.reg_c);
+        println!("DE: {:02X} {:02X}", self.reg_d, self.reg_e);
+        println!("HL: {:02X} {:02X}", self.reg_h, self.reg_l);
+        println!("PC: {:02X} {:02X}", self.pc >> 8, self.pc & 0xFF);
+        println!("SP: {:02X} {:02X}", self.sp >> 8, self.sp & 0xFF);
+        println!(
+            "Previous instruction cycle count: {} M / {} T",
+            self.last_opcode_cycles,
+            self.last_opcode_cycles * 4,
+        );
+        println!("CPU cycle counter: {}", self.cpu_cycle_counter);
+        println!(
+            "rDIV: {:02X}, rTIMA: {:02X}, rTMA: {:02X}, rTAC: {:08b}",
+            self.io[0x04], self.io[0x05], self.io[0x06], self.io[0x07]
+        );
+        println!(
+            "rIME: {:02X}, rIE:   {:02X}, rIF:  {:02X}, rSTAT:{:08b}",
+            self.ime, self.ie, self.io[0x0F], self.io[0x41]
+        );
     }
 
     pub(in crate) fn dump_memory(&mut self, file_path: &str, memory_start: u16, dump_length: u16) {
@@ -150,6 +166,7 @@ impl GameBoy {
                     // This means if only row_1's bit is set, the colour is dark grey
                     let row_1 = self.fetch_byte_from_memory(tile_address + 0);
                     let row_2 = self.fetch_byte_from_memory(tile_address + 1);
+                    self.curr_cycles_to_wait -= 2;
 
                     for pixel_x in 0..8 {
                         // Calculate pixel brightness from 0 to 3
