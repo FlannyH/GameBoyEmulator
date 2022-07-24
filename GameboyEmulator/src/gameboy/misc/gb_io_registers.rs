@@ -1,4 +1,3 @@
-
 use super::super::GameBoy;
 
 impl GameBoy {

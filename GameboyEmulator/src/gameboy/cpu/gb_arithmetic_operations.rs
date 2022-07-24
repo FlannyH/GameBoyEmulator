@@ -22,8 +22,7 @@ impl GameBoy {
         }
 
         // Half flag
-        if ((a & 0x0F) + (b & 0x0F) + (carry & 0x0F)) >= 0x10
-        {
+        if ((a & 0x0F) + (b & 0x0F) + (carry & 0x0F)) >= 0x10 {
             self.reg_f |= FlagMask::HALF as u8;
         }
 
@@ -97,14 +96,11 @@ impl GameBoy {
         self.reg_f &= (FlagMask::HALF as u8 | FlagMask::CARRY as u8);
 
         // Handle carry. This should not affect flags and inc or dec based on the sign of B
-        if b >= 0x80
-        {
+        if b >= 0x80 {
             if self.reg_f & FlagMask::CARRY as u8 == 0x00 {
                 a_h.wrapping_sub(1);
             }
-        }
-        else
-        {
+        } else {
             if self.reg_f & FlagMask::CARRY as u8 > 0x00 {
                 a_h.wrapping_add(1);
             }

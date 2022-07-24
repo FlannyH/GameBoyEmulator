@@ -100,12 +100,11 @@ impl GameBoy {
         println!("SP :{:02X} {:02X}", self.sp >> 8, self.sp & 0xFF);
     }
 
-    pub(in crate) fn dump_memory(&mut self, file_path: &str, memory_start: u16, dump_length: u16)
-    {
+    pub(in crate) fn dump_memory(&mut self, file_path: &str, memory_start: u16, dump_length: u16) {
         // Get Vec<u8> of all the bytes in the range specified
         let mut bytes: Vec<u8> = Vec::new();
         bytes.reserve(dump_length as usize);
-        for x in memory_start..(memory_start+dump_length) {
+        for x in memory_start..(memory_start + dump_length) {
             bytes.push(self.fetch_byte_from_memory(x));
         }
 

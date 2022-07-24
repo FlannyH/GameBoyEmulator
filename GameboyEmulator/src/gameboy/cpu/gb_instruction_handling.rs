@@ -1,5 +1,7 @@
 use std::io::{self, Read};
 
+use crate::gameboy::FlagMask;
+
 use super::super::GameBoy;
 
 impl GameBoy {
@@ -63,14 +65,26 @@ impl GameBoy {
         // These are all the special cases that don't fit neatly into one category
         match opcode {
             0x00 => return true, // NOP - no operation
-            0x07 => self.reg_a = self.rlc(self.reg_a),
-            0x0F => self.reg_a = self.rrc(self.reg_a),
+            0x07 => {
+                self.reg_a = self.rlc(self.reg_a);
+                self.reg_f &= FlagMask::CARRY as u8;
+            }
+            0x0F => {
+                self.reg_a = self.rrc(self.reg_a);
+                self.reg_f &= FlagMask::CARRY as u8;
+            }
             0x10 => {
                 self.fetch_next_byte_from_pc();
             } // STOP
-            0x17 => self.reg_a = self.rl(self.reg_a),
-            0x1F => self.reg_a = self.rr(self.reg_a),
-            0x76 => {}//self.dump_memory("ram_dump", 0xC000, 0x2000), // HALT
+            0x17 => {
+                self.reg_a = self.rl(self.reg_a);
+                self.reg_f &= FlagMask::CARRY as u8;
+            }
+            0x1F => {
+                self.reg_a = self.rr(self.reg_a);
+                self.reg_f &= FlagMask::CARRY as u8;
+            }
+            0x76 => {} //self.dump_memory("ram_dump", 0xC000, 0x2000), // HALT
             0xCB => {
                 self.handle_prefixed_instructions(opcode);
             } // CB - prefixed instructions mostly for bit shifting, setting, and clearing
