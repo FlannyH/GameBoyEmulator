@@ -133,7 +133,7 @@ impl GameBoy {
             }
             0xD0 => {
                 // ret nc
-                if self.reg_f & (FlagMask::ZERO as u8) == 0 {
+                if self.reg_f & (FlagMask::CARRY as u8) == 0 {
                     let target = self.pop_stack();
                     self.jump_absolute(target);
                 }
@@ -147,7 +147,7 @@ impl GameBoy {
             }
             0xD8 => {
                 // ret c
-                if self.reg_f & (FlagMask::ZERO as u8) != 0 {
+                if self.reg_f & (FlagMask::CARRY as u8) != 0 {
                     let target = self.pop_stack();
                     self.jump_absolute(target);
                 }
