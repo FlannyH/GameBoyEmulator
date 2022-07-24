@@ -23,48 +23,49 @@ pub struct PpuFifoElement {
 
 pub struct GameBoy {
     // Memory Map
-    pub(self) bios: [u8; 0x100],
-    pub(self) rom: Vec<u8>,
-    pub(self) vram: [u8; 0x2000],
-    pub(self) wram: [u8; 0x2000],
-    pub(self) oam: [u8; 0xA0],
-    pub(self) io: [u8; 0x80],
-    pub(self) hram: [u8; 0x7F],
+    bios: [u8; 0x100],
+    rom: Vec<u8>,
+    vram: [u8; 0x2000],
+    wram: [u8; 0x2000],
+    oam: [u8; 0xA0],
+    io: [u8; 0x80],
+    hram: [u8; 0x7F],
 
     // State
-    pub(self) ie: u8,
-    pub(self) ime: u8,
-    pub(self) pc: u16,
-    pub(self) sp: u16,
+    ie: u8,
+    ime: u8,
+    pc: u16,
+    sp: u16,
 
     // PPU
-    pub(self) ppu_lx: u8,
-    pub(self) ppu_ly: u8,
-    pub(self) ppu_mode: u8,
-    pub(self) ppu_dots_into_curr_mode: u16,
-    pub(self) ppu_dots_into_curr_line: u16,
-    pub(self) ppu_fifo: Queue<PpuFifoElement>,
-    pub(self) ppu_tilemap_x: u8, //0..=31
-    pub(self) ppu_tilemap_y: u8, //0..=31
-    pub(self) ppu_pixels_to_discard: u8,
-    pub(self) framebuffer: Vec<u32>,
+    ppu_lx: u8,
+    ppu_ly: u8,
+    ppu_mode: u8,
+    ppu_dots_into_curr_mode: u16,
+    ppu_dots_into_curr_line: u16,
+    ppu_fifo: Queue<PpuFifoElement>,
+    ppu_tilemap_x: u8, //0..=31
+    ppu_tilemap_y: u8, //0..=31
+    ppu_pixels_to_discard: u8,
+    framebuffer: Vec<u32>,
 
     // Registers
-    pub(self) reg_a: u8,
-    pub(self) reg_f: u8,
-    pub(self) reg_b: u8,
-    pub(self) reg_c: u8,
-    pub(self) reg_d: u8,
-    pub(self) reg_e: u8,
-    pub(self) reg_h: u8,
-    pub(self) reg_l: u8,
+    reg_a: u8,
+    reg_f: u8,
+    reg_b: u8,
+    reg_c: u8,
+    reg_d: u8,
+    reg_e: u8,
+    reg_h: u8,
+    reg_l: u8,
 
     // Misc emulation
-    pub(in crate) times: [u8; 256],
-    pub(self) curr_cycles_to_wait: u32,
-    pub(self) last_opcode: u8,
-    pub(self) rom_chip_enabled: bool,
-    pub(self) curr_rom_bank: u8,
+    pub times: [u8; 256],
+    curr_cycles_to_wait: u32,
+    last_opcode: u8,
+    rom_chip_enabled: bool,
+    curr_rom_bank: u8,
+    cpu_cycle_counter: u32,
 }
 
 impl GameBoy {

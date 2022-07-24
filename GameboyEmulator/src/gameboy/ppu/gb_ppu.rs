@@ -1,6 +1,14 @@
 use queues::IsQueue;
 
+use super::super::cpu::gb_interrupts::InterruptMasks;
 use super::super::{GameBoy, PpuFifoElement};
+
+enum LcdInterruptMasks {
+    Hblank = 1 << 3,
+    Vblank = 1 << 4,
+    Oam = 1 << 5,
+    Lyc = 1 << 6,
+}
 
 impl GameBoy {
     pub(in crate) fn run_ppu_cycle(&mut self) {
@@ -102,24 +110,39 @@ impl GameBoy {
 
                 if self.ppu_lx == 160 {
                     // Clear FIFO
-                    while (self.ppu_fifo.size() > 0) {
+                    while self.ppu_fifo.size() > 0 {
                         let _ = self.ppu_fifo.remove();
                     }
                     self.ppu_dots_into_curr_mode = 0;
                     self.ppu_mode = 0; // Go to H-blank
+                    if (self.io[0x41] & LcdInterruptMasks::Hblank as u8) > 0 {
+                        self.io[0x0F] |= InterruptMasks::Lcd as u8;
+                    }
                 }
             }
             0 => {
+                // If end of scanline
                 if self.ppu_dots_into_curr_line == 455 {
                     self.ppu_dots_into_curr_line = 0;
                     self.ppu_dots_into_curr_mode = 0;
                     self.ppu_lx = 0;
                     self.ppu_ly += 1;
                     self.ppu_tilemap_y = self.ppu_tilemap_y.wrapping_add(1);
+
+                    // If end of frame
                     if self.ppu_ly == 144 {
-                        self.ppu_mode = 1;
+                        self.ppu_mode = 1; // Go into V-blank
+
+                        // Request Vblank and LCD interrupts
+                        if (self.io[0x41] & LcdInterruptMasks::Vblank as u8) > 0 {
+                            self.io[0x0F] |= InterruptMasks::Lcd as u8;
+                        }
+                        self.io[0x0F] |= InterruptMasks::Vblank as u8;
                     } else {
                         self.ppu_mode = 2;
+                        if (self.io[0x41] & LcdInterruptMasks::Oam as u8) > 0 {
+                            self.io[0x0F] |= InterruptMasks::Lcd as u8;
+                        }
                     }
                 }
             }
@@ -127,12 +150,16 @@ impl GameBoy {
                 // V-blank
                 self.ppu_ly = 144 + (self.ppu_dots_into_curr_mode / 456) as u8;
 
+                // If end of V-blank, go into OAM search
                 if self.ppu_dots_into_curr_mode == 4559 {
                     self.ppu_dots_into_curr_line = 0;
                     self.ppu_dots_into_curr_mode = 0;
                     self.ppu_mode = 2;
                     self.ppu_ly = 0;
                     self.ppu_lx = 0;
+                    if (self.io[0x41] & LcdInterruptMasks::Oam as u8) > 0 {
+                        self.io[0x0F] |= InterruptMasks::Lcd as u8;
+                    }
                 }
             }
             _ => panic!(),

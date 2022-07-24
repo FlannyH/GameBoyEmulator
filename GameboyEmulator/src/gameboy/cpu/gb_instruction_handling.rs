@@ -4,6 +4,8 @@ use crate::gameboy::FlagMask;
 
 use super::super::GameBoy;
 
+const DEBUG: bool = false;
+
 impl GameBoy {
     pub(in crate) fn run_frame(&mut self) {
         loop {
@@ -13,27 +15,32 @@ impl GameBoy {
             self.run_ppu_cycle();
             self.run_ppu_cycle();
             let mut _stdin = io::stdin();
-            if self.rom_chip_enabled == false {
-                //println!("Opcode: ${:02X}, PC: ${:04X}", self.last_opcode, self.pc);
-                //self.print_reg_state();
-                //let _ = _stdin.read(&mut [0u8]).unwrap();
-                //let _ = _stdin.read(&mut [0u8]).unwrap();
-            }
             if prev != self.ppu_ly && self.ppu_ly % 144 == 0 {
                 break;
             }
-            //if (self.rom_chip_enabled == false) {
-            //    break;
-            //}
+            if DEBUG {
+                if self.rom_chip_enabled == true {
+                    println!("Opcode: ${:02X}, PC: ${:04X}", self.last_opcode, self.pc);
+                    self.print_reg_state();
+                    let _ = _stdin.read(&mut [0u8]).unwrap();
+                    let _ = _stdin.read(&mut [0u8]).unwrap();
+                }
+                if self.rom_chip_enabled == true {
+                    break;
+                }
+            }
         }
     }
 
     pub(in super::super) fn process_next_instruction(&mut self) {
-        self.times[self.last_opcode as usize] = self.curr_cycles_to_wait as u8;
-        self.curr_cycles_to_wait = 0;
+        // Wait for previous instruction to finish
         if self.curr_cycles_to_wait > 0 {
             self.curr_cycles_to_wait -= 1;
         }
+
+        // Interrupts
+        self.handle_interrupts();
+
         // Read byte from PC
         let opcode = self.fetch_next_byte_from_pc();
         self.last_opcode = opcode;

@@ -45,6 +45,7 @@ impl GameBoy {
             times: [0xFF; 0x100],
             last_opcode: 0x00,
             curr_rom_bank: 1,
+            cpu_cycle_counter: 0,
         };
 
         // Init RNG
@@ -109,7 +110,7 @@ impl GameBoy {
         }
 
         // Dump to file
-        fs::write(file_path, bytes);
+        fs::write(file_path, bytes).unwrap();
     }
 
     pub(in crate) fn render_memory(

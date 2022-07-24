@@ -17,7 +17,7 @@ impl GameBoy {
         let a16 = (a as u16) + ((b as u16) + (carry as u16));
 
         // Carry flag
-        if (a16 >= 0x100) {
+        if a16 >= 0x100 {
             self.reg_f |= FlagMask::CARRY as u8;
         }
 
@@ -51,7 +51,7 @@ impl GameBoy {
         let a16 = (0x100 + (a as u16)) - ((b as u16) + (borrow as u16));
 
         // Carry flag
-        if (a16 < 0x100) {
+        if a16 < 0x100 {
             self.reg_f |= FlagMask::CARRY as u8;
         }
 
@@ -93,7 +93,7 @@ impl GameBoy {
         let mut a_h = a_h;
 
         // Correct the flags
-        self.reg_f &= (FlagMask::HALF as u8 | FlagMask::CARRY as u8);
+        self.reg_f &= FlagMask::HALF as u8 | FlagMask::CARRY as u8;
 
         // Handle carry. This should not affect flags and inc or dec based on the sign of B
         if b >= 0x80 {
