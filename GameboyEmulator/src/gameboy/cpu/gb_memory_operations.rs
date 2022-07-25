@@ -6,7 +6,6 @@ impl GameBoy {
         match address {
             // ROM bank 0
             0x0000..=0x3FFF => {
-                // TODO: bootrom support
                 if self.rom_chip_enabled && address < 0x0100 {
                     return self.bios[address as usize];
                 }
@@ -24,7 +23,7 @@ impl GameBoy {
             }
             // VRAM bank 0 or 1
             0x8000..=0x9FFF => {
-                // TODO: make sure this only returns the right value when PPU is unlocked, otherwise return 0xFF
+                // Make sure this only returns the right value when PPU is unlocked, otherwise return 0xFF
                 if self.ppu_mode != 3 {
                     self.vram[(address & 0x1FFF) as usize]
                 } else {
@@ -53,8 +52,12 @@ impl GameBoy {
             }
             // OAM sprite attribute table
             0xFE00..=0xFE9F => {
-                // TODO: make sure this only returns the right value when PPU is unlocked, otherwise return 0xFF
-                self.oam[(address & 0xFF) as usize]
+                // Only return the byte if the PPU is not accessing this memory
+                match self.ppu_mode {
+                    0 => self.oam[(address & 0xFF) as usize],
+                    1 => self.oam[(address & 0xFF) as usize],
+                    _ => 0xFF,
+                }
             }
             // Not usable
             0xFEA0..=0xFEFF => 0xFF,
@@ -79,15 +82,16 @@ impl GameBoy {
                     if self.curr_rom_bank == 0 {
                         self.curr_rom_bank = 1;
                     }
-                    println!("Switched to rom bank {}", self.curr_rom_bank);
                 }
             }
             // ROM bank 1 or higher
             0x4000..=0x7FFF => (),
             // VRAM bank 0 or 1
             0x8000..=0x9FFF => {
-                // TODO: make sure this only returns the right value when PPU is unlocked, otherwise return 0xFF
-                self.vram[(address & 0x1FFF) as usize] = value;
+                // Only store the value if the PPU is not reading from VRAM
+                if self.ppu_mode != 3 {
+                    self.vram[(address & 0x1FFF) as usize] = value;
+                }
             }
             // External RAM
             0xA000..=0xBFFF => {

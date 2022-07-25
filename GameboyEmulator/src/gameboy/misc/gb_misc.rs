@@ -51,7 +51,7 @@ impl GameBoy {
             is_halted: false,
             debug_enabled: false,
             debug_bios: false,
-            debug_require_input: true,
+            debug_require_input: false,
             timer_div: 0,
             timer_overflow: false,
         };
@@ -118,8 +118,8 @@ impl GameBoy {
             self.io[0x04], self.io[0x05], self.io[0x06], self.io[0x07]
         );
         println!(
-            "rIME: {:02X}, rIE:   {:02X}, rIF:  {:02X}, rSTAT:{:08b}",
-            self.ime, self.ie, self.io[0x0F], self.io[0x41]
+            "rIME: {:02X}, rIE:   {:02X}, rIF:  {:02X}, rSTAT:{:08b}, rLY:  {}",
+            self.ime, self.ie, self.io[0x0F], self.io[0x41], self.io[0x44]
         );
     }
 

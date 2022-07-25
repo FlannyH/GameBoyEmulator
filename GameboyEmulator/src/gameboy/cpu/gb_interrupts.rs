@@ -11,7 +11,7 @@ pub enum InterruptMasks {
 impl GameBoy {
     pub(super) fn handle_interrupts(&mut self) {
         // Let's see if there was an interrupt, we might want to wake the CPU up
-        if self.io[0x0F] & self.ie > 0 {
+        if (self.io[0x0F] & self.ie) > 0 {
             // Hey CPU wake up new interrupt just dropped
             self.is_halted = false; // CPU: god dammit interrupt handler my nap was so good OH SHIT INTERRUPT??
         }
@@ -21,7 +21,7 @@ impl GameBoy {
             return; // CPU: for fucks sake interrupt handler i thought i put you on do not disturb mode
         }
 
-        while self.io[0x0F] & self.ie > 0 {
+        if self.io[0x0F] & self.ie > 0 {
             // For convenience, let's put all the active requested interrupts into one variable
             let requested_interrupts = self.io[0x0F] & self.ie;
 
@@ -42,25 +42,26 @@ impl GameBoy {
             if requested_interrupts & (InterruptMasks::Lcd as u8) > 0 {
                 self.io[0x0F] &= !(InterruptMasks::Lcd as u8);
                 self.ime = 0;
-                self.push_stack(self.pc);
-                self.jump_absolute(0x0048);
+                self.curr_cycles_to_wait += 2; //according to gbdev.io/pandocs/interrupts, 2 wait states should be executed.
+                self.push_stack(self.pc); // 2 stores -> 2 m-cycles
+                self.jump_absolute(0x0048); // 1 m-cycle, total 5 m-cycles
             }
 
-            if requested_interrupts & (InterruptMasks::Timer as u8) > 0 {
+            else if requested_interrupts & (InterruptMasks::Timer as u8) > 0 {
                 self.io[0x0F] &= !(InterruptMasks::Timer as u8);
                 self.ime = 0;
                 self.push_stack(self.pc);
                 self.jump_absolute(0x0050);
             }
 
-            if requested_interrupts & (InterruptMasks::Serial as u8) > 0 {
+            else if requested_interrupts & (InterruptMasks::Serial as u8) > 0 {
                 self.io[0x0F] &= !(InterruptMasks::Serial as u8);
                 self.ime = 0;
                 self.push_stack(self.pc);
                 self.jump_absolute(0x0058);
             }
 
-            if requested_interrupts & (InterruptMasks::Joypad as u8) > 0 {
+            else if requested_interrupts & (InterruptMasks::Joypad as u8) > 0 {
                 self.io[0x0F] &= !(InterruptMasks::Joypad as u8);
                 self.ime = 0;
                 self.push_stack(self.pc);

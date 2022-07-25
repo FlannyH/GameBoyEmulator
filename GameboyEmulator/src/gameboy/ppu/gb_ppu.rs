@@ -12,13 +12,15 @@ enum LcdInterruptMasks {
 
 impl GameBoy {
     pub(in crate) fn run_ppu_cycle(&mut self) {
-        if self.io[0x40] & 0x80 == 0
-        {
+        if self.io[0x40] & 0x80 == 0 {
             self.ppu_dots_into_curr_line = 0;
             self.ppu_dots_into_curr_mode = 0;
-            self.ppu_mode = 2;
+            self.ppu_mode = 0;
             self.ppu_ly = 0;
             self.ppu_lx = 0;
+            self.io[0x40] = 0;
+            self.io[0x41] = (self.io[0x41] & 0b01111000) | 0b10000111;
+            return;
         }
         match self.ppu_mode {
             2 => {
@@ -102,6 +104,7 @@ impl GameBoy {
                 {
                     if self.ppu_pixels_to_discard > 0 {
                         self.ppu_pixels_to_discard -= 1;
+                        self.ppu_fifo.remove().unwrap();
                     } else {
                         let curr_pixel_index = self.ppu_fifo.remove().unwrap();
                         let curr_pixel_color = self.io[0x47 + curr_pixel_index.source as usize]
@@ -111,10 +114,10 @@ impl GameBoy {
                             (((curr_pixel_color ^ 0b11) as u32) * (235 / 3)) * 0x00010101;
                         if (self.io[0x40] & 0x80) == 0 {
                             self.framebuffer[self.ppu_lx as usize + self.ppu_ly as usize * 160] =
-                                0xFFFFFFFF; // TODO: palettes?
+                                0xFFFFFFFF;
                         } else {
                             self.framebuffer[self.ppu_lx as usize + self.ppu_ly as usize * 160] =
-                                final_color; // TODO: palettes?
+                                final_color;
                         }
                         self.ppu_lx += 1;
                     }
@@ -182,6 +185,14 @@ impl GameBoy {
         }
         self.io[0x41] |= self.ppu_mode & 0x03;
         self.io[0x44] = self.ppu_ly;
+
+        // Request LCD interrupt if LY==LYC
+        if self.ppu_ly == self.io[0x45] && self.ppu_ly > 0 {
+            self.io[0x41] |= 1 << 2;
+            if (self.io[0x41] & LcdInterruptMasks::Lyc as u8) > 0 {
+                self.io[0x0F] |= InterruptMasks::Lcd as u8;
+            }
+        }
 
         //print!("PPU STATS: mode: {:>3}, curr_dots_mode: {:>3}, curr_dots_line {:>3}, lx: {:>3}, ly: {:>3}, tilemap_x: {:>3}, tilemap_y: {:>3}    \r", self.ppu_mode, self.ppu_dots_into_curr_mode, self.ppu_dots_into_curr_line, self.ppu_lx, self.ppu_ly, self.ppu_tilemap_x, self.ppu_tilemap_y);
     }

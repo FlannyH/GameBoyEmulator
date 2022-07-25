@@ -23,14 +23,18 @@ impl GameBoy {
     pub(in super::super) fn handle_io_register_write(&mut self, address: u16, value: u8) -> bool {
         // TODO: actually implement registers
         match address {
-            0xFF50 => self.rom_chip_enabled = false,
+            0xFF00 => self.io[0x00] = (value & 0b00110000) | (self.io[0x00] & 0b11001111),
             0xFF04 => self.timer_div = 0x0000,
+            0xFF50 => self.rom_chip_enabled = false,
             _ => self.io[(address & 0x7F) as usize] = value,
         }
         return true;
     }
 
     pub(in super::super) fn handle_io_register_read(&self, address: u16) -> u8 {
-        return self.io[(address & 0x7F) as usize];
+        match address {
+            0xFF00 => (self.io[0x00] & 0xF0) | (0x0F),// TODO: actually implement input
+            _ => self.io[(address & 0x7F) as usize],
+        }
     }
 }

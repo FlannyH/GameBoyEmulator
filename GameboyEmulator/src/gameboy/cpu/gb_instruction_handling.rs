@@ -16,11 +16,19 @@ impl GameBoy {
             if prev != self.ppu_ly && self.ppu_ly % 144 == 0 {
                 break;
             }
+            if (self.io[0x40] & 0x80 == 0) && (self.timer_div < 3)
+            {
+                //break;
+            }
             // This is the most scuffed breakpoint ever but hey sometimes that's what ya gotta do
-            //if self.pc == 0xC319 {
-            //    self.DEBUG_ENABLED = true;
-            //}
-            if self.debug_enabled && (self.new_instruction_tick) && self.pc >= 0xC000 {
+            if (0x0095..0x00CE).contains(&self.pc) && self.rom_chip_enabled == false {
+                //self.debug_enabled = true;
+            }
+            else
+            {
+                self.debug_enabled = false;
+            }
+            if self.debug_enabled && (self.new_instruction_tick) {
                 if self.rom_chip_enabled == self.debug_bios {
                     println!("Opcode: ${:02X}, PC: ${:04X}", self.last_opcode, self.pc);
                     self.print_reg_state();
@@ -29,9 +37,9 @@ impl GameBoy {
                         let _ = _stdin.read(&mut [0u8]).unwrap();
                     }
                 }
-                if self.rom_chip_enabled == self.debug_bios {
-                    break;
-                }
+                //if self.rom_chip_enabled == self.debug_bios {
+                //    break;
+                //}
             }
         }
     }
