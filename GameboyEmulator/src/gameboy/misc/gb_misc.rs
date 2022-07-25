@@ -1,8 +1,7 @@
+use std::collections::VecDeque;
 use std::fs;
 
 use crate::WIDTH;
-use queues::queue;
-use queues::Queue;
 use rand::Rng;
 
 use super::super::GameBoy;
@@ -27,7 +26,7 @@ impl GameBoy {
             ppu_mode: 1,
             ppu_dots_into_curr_mode: 0,
             ppu_dots_into_curr_line: 0,
-            ppu_fifo: queue![],
+            ppu_fifo: VecDeque::new(),
             ppu_tilemap_x: 0,
             ppu_tilemap_y: 0,
             ppu_pixels_to_discard: 0,
@@ -54,6 +53,9 @@ impl GameBoy {
             debug_require_input: false,
             timer_div: 0,
             timer_overflow: false,
+            ppu_sprite_buffer: Vec::new(),
+            oam_dma_counter: 0,
+            oam_dma_source: 0,
         };
 
         // Init RNG

@@ -45,23 +45,17 @@ impl GameBoy {
                 self.curr_cycles_to_wait += 2; //according to gbdev.io/pandocs/interrupts, 2 wait states should be executed.
                 self.push_stack(self.pc); // 2 stores -> 2 m-cycles
                 self.jump_absolute(0x0048); // 1 m-cycle, total 5 m-cycles
-            }
-
-            else if requested_interrupts & (InterruptMasks::Timer as u8) > 0 {
+            } else if requested_interrupts & (InterruptMasks::Timer as u8) > 0 {
                 self.io[0x0F] &= !(InterruptMasks::Timer as u8);
                 self.ime = 0;
                 self.push_stack(self.pc);
                 self.jump_absolute(0x0050);
-            }
-
-            else if requested_interrupts & (InterruptMasks::Serial as u8) > 0 {
+            } else if requested_interrupts & (InterruptMasks::Serial as u8) > 0 {
                 self.io[0x0F] &= !(InterruptMasks::Serial as u8);
                 self.ime = 0;
                 self.push_stack(self.pc);
                 self.jump_absolute(0x0058);
-            }
-
-            else if requested_interrupts & (InterruptMasks::Joypad as u8) > 0 {
+            } else if requested_interrupts & (InterruptMasks::Joypad as u8) > 0 {
                 self.io[0x0F] &= !(InterruptMasks::Joypad as u8);
                 self.ime = 0;
                 self.push_stack(self.pc);
@@ -108,7 +102,6 @@ impl GameBoy {
             if self.io[0x05] == 0x00 {
                 self.timer_overflow = true;
             }
-
         }
     }
 }

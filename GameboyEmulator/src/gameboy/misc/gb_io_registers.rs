@@ -25,6 +25,10 @@ impl GameBoy {
         match address {
             0xFF00 => self.io[0x00] = (value & 0b00110000) | (self.io[0x00] & 0b11001111),
             0xFF04 => self.timer_div = 0x0000,
+            0xFF46 => {
+                self.oam_dma_counter = 160;
+                self.oam_dma_source = (value as u16) << 8;
+            }
             0xFF50 => self.rom_chip_enabled = false,
             _ => self.io[(address & 0x7F) as usize] = value,
         }
@@ -33,7 +37,7 @@ impl GameBoy {
 
     pub(in super::super) fn handle_io_register_read(&self, address: u16) -> u8 {
         match address {
-            0xFF00 => (self.io[0x00] & 0xF0) | (0x0F),// TODO: actually implement input
+            0xFF00 => (self.io[0x00] & 0xF0) | (0x0F), // TODO: actually implement input
             _ => self.io[(address & 0x7F) as usize],
         }
     }

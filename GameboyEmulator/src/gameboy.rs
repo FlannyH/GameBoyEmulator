@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use queues::Queue;
+use std::collections::VecDeque;
 
 use crate::WIDTH;
 
@@ -19,6 +19,13 @@ pub enum FlagMask {
 pub struct PpuFifoElement {
     pub color: u8,  //0, 1, 2, 3
     pub source: u8, //0: bg, 1: sprite 1, 2: sprite 2
+}
+
+struct OamEntry {
+    posy: u8,
+    posx: u8,
+    tile: u8,
+    attr: u8,
 }
 
 pub struct GameBoy {
@@ -43,10 +50,11 @@ pub struct GameBoy {
     ppu_mode: u8,
     ppu_dots_into_curr_mode: u16,
     ppu_dots_into_curr_line: u16,
-    ppu_fifo: Queue<PpuFifoElement>,
+    ppu_fifo: VecDeque<PpuFifoElement>,
     ppu_tilemap_x: u8, //0..=31
     ppu_tilemap_y: u8, //0..=31
     ppu_pixels_to_discard: u8,
+    ppu_sprite_buffer: Vec<OamEntry>,
     framebuffer: Vec<u32>,
 
     // Registers
@@ -71,6 +79,8 @@ pub struct GameBoy {
     is_halted: bool,
     timer_div: u16,
     timer_overflow: bool,
+    oam_dma_counter: u8,
+    oam_dma_source: u16,
 
     // Debug
     debug_enabled: bool,

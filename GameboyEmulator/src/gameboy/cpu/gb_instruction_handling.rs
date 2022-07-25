@@ -12,20 +12,25 @@ impl GameBoy {
             //self.print_reg_state();
             self.run_ppu_cycle();
             self.run_ppu_cycle();
+
+            if self.oam_dma_counter > 0 {
+                self.oam[160 - self.oam_dma_counter as usize] = self.fetch_byte_from_memory(
+                    self.oam_dma_source + (160 - self.oam_dma_counter as u16),
+                );
+                self.oam_dma_counter -= 1;
+            }
+
             let mut _stdin = io::stdin();
             if prev != self.ppu_ly && self.ppu_ly % 144 == 0 {
                 break;
             }
-            if (self.io[0x40] & 0x80 == 0) && (self.timer_div < 3)
-            {
+            if (self.io[0x40] & 0x80 == 0) && (self.timer_div < 3) {
                 //break;
             }
             // This is the most scuffed breakpoint ever but hey sometimes that's what ya gotta do
             if (0x0095..0x00CE).contains(&self.pc) && self.rom_chip_enabled == false {
                 //self.debug_enabled = true;
-            }
-            else
-            {
+            } else {
                 self.debug_enabled = false;
             }
             if self.debug_enabled && (self.new_instruction_tick) {

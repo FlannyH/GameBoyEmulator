@@ -1,4 +1,4 @@
-use queues::IsQueue;
+use crate::gameboy::OamEntry;
 
 use super::super::cpu::gb_interrupts::InterruptMasks;
 use super::super::{GameBoy, PpuFifoElement};
@@ -27,8 +27,30 @@ impl GameBoy {
                 // OAM scanning
                 // TODO: Fetch all the sprites and filter them
                 if self.ppu_dots_into_curr_mode == 1 {
+                    // LCD interrupt if OAM bit is set
                     if (self.io[0x41] & LcdInterruptMasks::Oam as u8) > 0 {
                         self.io[0x0F] |= InterruptMasks::Lcd as u8;
+                    }
+
+                    // Clear OAM fetch buffer
+                    self.ppu_sprite_buffer.clear();
+
+                    // Fetch sprites on this scanline
+                    for sprite_base_address in (0x00..0xA0).step_by(4) {
+                        // OAM entry order: Y, X, tile, attributes
+                        if (self.ppu_ly..self.ppu_ly + 8)
+                            .contains(&(self.oam[sprite_base_address + 0] - 9))
+                        {
+                            self.ppu_sprite_buffer.push(OamEntry {
+                                posy: self.oam[sprite_base_address + 0],
+                                posx: self.oam[sprite_base_address + 1],
+                                tile: self.oam[sprite_base_address + 2],
+                                attr: self.oam[sprite_base_address + 3],
+                            });
+                            if self.ppu_sprite_buffer.len() == 10 {
+                                break;
+                            }
+                        }
                     }
                 }
 
@@ -49,7 +71,7 @@ impl GameBoy {
                 }
 
                 // If the PPU FIFO is dry, fetch 8 pixels
-                if self.ppu_fifo.size() <= 8 {
+                if self.ppu_fifo.len() <= 8 {
                     // Create address from tilemap x and y
                     let mut tile_index_sample_address: usize = 0x9800;
                     if (self.io[0x40] & 0x08) > 0 {
@@ -84,29 +106,71 @@ impl GameBoy {
                         if row_high & (1 << (7 - x)) > 0 {
                             pixel += 2;
                         }
-                        match self.ppu_fifo.add(PpuFifoElement {
+                        self.ppu_fifo.push_back(PpuFifoElement {
                             color: pixel,
                             source: 0,
-                        }) {
-                            Ok(_e) => (),
-                            Err(_e) => {
-                                println!(
-                                    "Somehow the pixel fifo can't be added to? This is strange"
-                                );
-                                panic!();
-                            }
-                        };
+                        });
                     }
                     self.ppu_tilemap_x = self.ppu_tilemap_x.wrapping_add(8);
+                }
+
+                // Loop over each sprite in this scanline
+                for sprite in &self.ppu_sprite_buffer {
+                    if (sprite.posx - 8) == self.ppu_lx {
+                        // Get Y of the sprite tile we want
+                        let sprite_tile_y = (sprite.posy - 9) - self.ppu_ly;
+
+                        // Get the address of the tile we want to load
+                        let mut tile_data_sample_address = 0x8000;
+                        tile_data_sample_address += (sprite.tile as usize) << 4;
+                        if sprite.attr & 0x40 == 0 {
+                            tile_data_sample_address += 14 - ((sprite_tile_y as usize) * 2);
+                        } else {
+                            tile_data_sample_address += (sprite_tile_y as usize) * 2;
+                        }
+
+                        // Load the row of pixels
+                        let row_low = self.vram[(tile_data_sample_address + 0) & 0x1FFF];
+                        let row_high = self.vram[(tile_data_sample_address + 1) & 0x1FFF];
+
+                        // Mix it into the queue
+                        for x in 0..8 {
+                            // Get color index
+                            let mut color_sprite = (row_low & (1 << x)) >> x;
+                            color_sprite += ((row_high & (1 << x)) >> x) * 2;
+
+                            // Get palette index
+                            let mut source_sprite = 1;
+                            if sprite.attr & 0x10 != 0 {
+                                source_sprite = 2;
+                            }
+
+                            // Create the new fifo element
+                            let new_fifo_element = PpuFifoElement {
+                                color: color_sprite,
+                                source: source_sprite,
+                            };
+
+                            // Replace the tilemap fifo element if the color isn't 0
+                            if new_fifo_element.color != 0 {
+                                // Handle flipping
+                                if (sprite.attr & 0x20) != 0 {
+                                    self.ppu_fifo[x] = new_fifo_element;
+                                } else {
+                                    self.ppu_fifo[7-x] = new_fifo_element;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Push a pixel
                 {
                     if self.ppu_pixels_to_discard > 0 {
                         self.ppu_pixels_to_discard -= 1;
-                        self.ppu_fifo.remove().unwrap();
+                        self.ppu_fifo.pop_front();
                     } else {
-                        let curr_pixel_index = self.ppu_fifo.remove().unwrap();
+                        let curr_pixel_index = self.ppu_fifo.pop_front().unwrap();
                         let curr_pixel_color = self.io[0x47 + curr_pixel_index.source as usize]
                             >> (curr_pixel_index.color * 2)
                             & 0x03;
@@ -125,8 +189,8 @@ impl GameBoy {
 
                 if self.ppu_lx == 160 {
                     // Clear FIFO
-                    while self.ppu_fifo.size() > 0 {
-                        let _ = self.ppu_fifo.remove();
+                    while self.ppu_fifo.len() > 0 {
+                        let _ = self.ppu_fifo.pop_front().unwrap();
                     }
                     self.ppu_dots_into_curr_mode = 0;
                     self.ppu_mode = 0; // Go to H-blank
