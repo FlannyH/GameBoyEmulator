@@ -49,9 +49,11 @@ impl GameBoy {
             curr_rom_bank: 1,
             cpu_cycle_counter: 0,
             is_halted: false,
-            DEBUG_ENABLED: false,
-            DEBUG_BIOS: false,
-            DEBUG_REQUIRE_INPUT: true,
+            debug_enabled: false,
+            debug_bios: false,
+            debug_require_input: true,
+            timer_div: 0,
+            timer_overflow: false,
         };
 
         // Init RNG

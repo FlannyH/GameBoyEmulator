@@ -24,7 +24,7 @@ impl GameBoy {
         // TODO: actually implement registers
         match address {
             0xFF50 => self.rom_chip_enabled = false,
-            0xFF04 => self.io[(address & 0x7F) as usize] = 0x00,
+            0xFF04 => self.timer_div = 0x0000,
             _ => self.io[(address & 0x7F) as usize] = value,
         }
         return true;

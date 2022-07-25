@@ -20,16 +20,16 @@ impl GameBoy {
             //if self.pc == 0xC319 {
             //    self.DEBUG_ENABLED = true;
             //}
-            if self.DEBUG_ENABLED && (self.new_instruction_tick) && self.pc >= 0xC000 {
-                if self.rom_chip_enabled == self.DEBUG_BIOS {
+            if self.debug_enabled && (self.new_instruction_tick) && self.pc >= 0xC000 {
+                if self.rom_chip_enabled == self.debug_bios {
                     println!("Opcode: ${:02X}, PC: ${:04X}", self.last_opcode, self.pc);
                     self.print_reg_state();
-                    if self.DEBUG_REQUIRE_INPUT {
+                    if self.debug_require_input {
                         let _ = _stdin.read(&mut [0u8]).unwrap();
                         let _ = _stdin.read(&mut [0u8]).unwrap();
                     }
                 }
-                if self.rom_chip_enabled == self.DEBUG_BIOS {
+                if self.rom_chip_enabled == self.debug_bios {
                     break;
                 }
             }

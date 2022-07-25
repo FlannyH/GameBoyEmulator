@@ -72,39 +72,42 @@ impl GameBoy {
     // Should be called every CPU cycle
     pub(super) fn handle_timer(&mut self) {
         // Increment internal counter
-        self.cpu_cycle_counter += 4;
+        let timer_div_prev = self.timer_div;
+        self.timer_div = self.timer_div.wrapping_add(4);
 
         // DIV register
-        if self.cpu_cycle_counter % 256 == 0 {
-            self.io[0x04] = self.io[0x04].wrapping_add(1);
-        }
+        self.io[0x04] = (self.timer_div >> 8) as u8;
 
         // The rest of the function only happens if the timer is enabled, so return if it's not enabled
         if self.io[0x07] & 0b00000100 == 0 {
             return;
         }
 
+        // Handle overflow
+        if self.timer_overflow {
+            // Request interrupt
+            self.io[0x0F] |= InterruptMasks::Timer as u8;
+
+            // Set Timer Counter to Timer Modulo
+            self.io[0x05] = self.io[0x06];
+        }
+
         // Get timer period from TAC
-        let timer_period = match self.io[0x07] & 0b00000011 {
-            0 => 1024,
-            1 => 16,
-            2 => 64,
-            3 => 256,
+        let timer_div_mask = match self.io[0x07] & 0b00000011 {
+            0 => 1 << 9,
+            1 => 1 << 3,
+            2 => 1 << 5,
+            3 => 1 << 7,
             _ => 0, // to stop rustc from crying, clearly if i and an integer with 0b00000011 the only legal values would be 0 1 2 and 3, but i guess not
         };
 
-        // Update timer
-        if self.cpu_cycle_counter % timer_period == 0 {
+        // Update timer if the requested bit falls to 0
+        if (self.timer_div & timer_div_mask) == 0 && (timer_div_prev & timer_div_mask) > 0 {
             self.io[0x05] = self.io[0x05].wrapping_add(1);
-
-            // Handle overflow
             if self.io[0x05] == 0x00 {
-                // Request interrupt
-                self.io[0x0F] |= InterruptMasks::Timer as u8;
-
-                // Set Timer Counter to Timer Modulo
-                self.io[0x05] = self.io[0x06];
+                self.timer_overflow = true;
             }
+
         }
     }
 }

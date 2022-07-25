@@ -18,3 +18,4 @@ dmg_boot.bin
 times.bin
 GameboyEmulator/ram_dump
 GameboyEmulator/test_roms/*.sav
+GameboyEmulator/test_roms/Super Mario Land.gbc

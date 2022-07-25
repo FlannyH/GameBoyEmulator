@@ -91,8 +91,7 @@ impl GameBoy {
             }
             // External RAM
             0xA000..=0xBFFF => {
-                self.print_reg_state();
-                todo!();
+                // ignore
             }
             // WRAM bank 0
             0xC000..=0xCFFF => self.wram[(address & 0x1FFF) as usize] = value,
