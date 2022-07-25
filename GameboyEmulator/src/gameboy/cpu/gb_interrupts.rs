@@ -85,6 +85,9 @@ impl GameBoy {
 
             // Set Timer Counter to Timer Modulo
             self.io[0x05] = self.io[0x06];
+
+            // RESET THIS FLAG holy shit this took me hours to find
+            self.timer_overflow = false;
         }
 
         // Get timer period from TAC

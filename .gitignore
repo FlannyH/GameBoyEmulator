@@ -19,3 +19,5 @@ times.bin
 GameboyEmulator/ram_dump
 GameboyEmulator/test_roms/*.sav
 GameboyEmulator/test_roms/Super Mario Land.gbc
+GameboyEmulator/log.txt
+GameboyEmulator/log2.txt
