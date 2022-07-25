@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::fs;
 
-use crate::WIDTH;
+use crate::DEBUG_WIDTH;
 use rand::Rng;
 
 use super::super::GameBoy;
@@ -57,6 +57,9 @@ impl GameBoy {
             oam_dma_counter: 0,
             oam_dma_source: 0,
             joypad_state: 0,
+            eram: Vec::new(),
+            eram_chip_enabled: false,
+            curr_eram_bank: 0,
         };
 
         // Init RNG
@@ -152,12 +155,12 @@ impl GameBoy {
         let end_x = offset_x + tile_w * 8 * pixel_scale;
         let end_y = offset_y + tile_h * 8 * pixel_scale;
         for x in (offset_x - 1)..=(end_x + 1) {
-            buffer[x + (offset_y - 1) * WIDTH] = 0xFFFF00FF;
-            buffer[x + (end_y + 1) * WIDTH] = 0xFFFF00FF;
+            buffer[x + (offset_y - 1) * DEBUG_WIDTH] = 0xFFFF00FF;
+            buffer[x + (end_y + 1) * DEBUG_WIDTH] = 0xFFFF00FF;
         }
         for y in (offset_y - 1)..=(end_y + 1) {
-            buffer[(offset_x - 1) + y * WIDTH] = 0xFFFF00FF;
-            buffer[(end_x + 1) + y * WIDTH] = 0xFFFF00FF;
+            buffer[(offset_x - 1) + y * DEBUG_WIDTH] = 0xFFFF00FF;
+            buffer[(end_x + 1) + y * DEBUG_WIDTH] = 0xFFFF00FF;
         }
 
         let ram_base = memory_start;
@@ -198,7 +201,7 @@ impl GameBoy {
                                 // Calculate buffer index for this pixel
                                 let buffer_x = (tile_x * 8 + pixel_x) * pixel_scale + x + offset_x;
                                 let buffer_y = (tile_y * 8 + pixel_y) * pixel_scale + y + offset_y;
-                                let buffer_index = buffer_x + buffer_y * WIDTH;
+                                let buffer_index = buffer_x + buffer_y * DEBUG_WIDTH;
 
                                 // Set the pixel in the buffer
                                 buffer[buffer_index] = brightness;

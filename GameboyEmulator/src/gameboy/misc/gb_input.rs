@@ -1,21 +1,21 @@
 use crate::gameboy::GameBoy;
-use minifb::{Key, Window};
+use mini_gl_fb::{glutin::event::VirtualKeyCode, BasicInput};
 
 impl GameBoy {
-    pub(crate) fn update_input(&mut self, window: &Window) {
+    pub(crate) fn update_input(&mut self, input: &BasicInput) {
         let mut new_input = 0;
         for key in [
-            /* Down   */Key::Down,
-            /* Up     */Key::Up,
-            /* Left   */Key::Left,
-            /* Right  */Key::Right,
-            /* Start  */Key::Enter,
-            /* Select */Key::RightShift,
-            /* B      */Key::Z,
-            /* A      */Key::X,
+            /* Down   */ VirtualKeyCode::Down,
+            /* Up     */ VirtualKeyCode::Up,
+            /* Left   */ VirtualKeyCode::Left,
+            /* Right  */ VirtualKeyCode::Right,
+            /* Start  */ VirtualKeyCode::Return,
+            /* Select */ VirtualKeyCode::RShift,
+            /* B      */ VirtualKeyCode::Z,
+            /* A      */ VirtualKeyCode::X,
         ] {
             new_input <<= 1;
-            if window.is_key_down(key) {
+            if input.key_is_down(key) {
                 new_input |= 0x01;
             }
         }

@@ -46,7 +46,7 @@ impl GameBoy {
                     return_value |= self.joypad_state & 0x0F;
                 }
                 return_value
-            }, // TODO: actually implement input
+            } // TODO: actually implement input
             _ => self.io[(address & 0x7F) as usize],
         }
     }

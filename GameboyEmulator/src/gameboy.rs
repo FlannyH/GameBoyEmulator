@@ -2,8 +2,6 @@
 
 use std::collections::VecDeque;
 
-use crate::WIDTH;
-
 mod cpu;
 mod misc;
 mod ppu;
@@ -32,6 +30,7 @@ pub struct GameBoy {
     // Memory Map
     bios: [u8; 0x100],
     rom: Vec<u8>,
+    eram: Vec<u8>,
     vram: [u8; 0x2000],
     wram: [u8; 0x2000],
     oam: [u8; 0xA0],
@@ -74,7 +73,9 @@ pub struct GameBoy {
     last_opcode_cycles: u32,
     new_instruction_tick: bool,
     rom_chip_enabled: bool,
+    eram_chip_enabled: bool,
     curr_rom_bank: u8,
+    curr_eram_bank: u8,
     cpu_cycle_counter: u32,
     is_halted: bool,
     timer_div: u16,
@@ -90,23 +91,30 @@ pub struct GameBoy {
 }
 
 impl GameBoy {
-    pub(crate) fn render_screen(&self, buffer: &mut Vec<u32>, offset_x: usize, offset_y: usize) {
+    pub(crate) fn render_screen(
+        &self,
+        buffer: &mut Vec<u32>,
+        offset_x: usize,
+        offset_y: usize,
+        scale: usize,
+        width: usize,
+    ) {
         // Render outline
-        let end_x = offset_x + 160 * 2;
-        let end_y = offset_y + 144 * 2;
-        for x in (offset_x - 1)..=(end_x + 1) {
-            buffer[x + (offset_y - 1) * WIDTH] = 0xFFFF00FF;
-            buffer[x + (end_y + 1) * WIDTH] = 0xFFFF00FF;
+        let end_x = offset_x + 160 * scale;
+        let end_y = offset_y + 144 * scale;
+        for x in (offset_x.wrapping_sub(1))..=(end_x + 1) {
+            buffer[x + (offset_y - 1) * width] = 0xFFFF00FF;
+            buffer[x + (end_y + 1) * width] = 0xFFFF00FF;
         }
-        for y in (offset_y - 1)..=(end_y + 1) {
-            buffer[(offset_x - 1) + y * WIDTH] = 0xFFFF00FF;
-            buffer[(end_x + 1) + y * WIDTH] = 0xFFFF00FF;
+        for y in (offset_x.wrapping_sub(1))..=(end_y + 1) {
+            buffer[(offset_x - 1) + y * width] = 0xFFFF00FF;
+            buffer[(end_x + 1) + y * width] = 0xFFFF00FF;
         }
 
-        for y in 0..144 * 2 {
-            for x in 0..160 * 2 {
-                buffer[(offset_x + x + 1) + (offset_y + y + 1) * WIDTH] =
-                    self.framebuffer[(x / 2) + (y / 2) * 160];
+        for y in 0..144 * scale {
+            for x in 0..160 * scale {
+                buffer[(offset_x + x + 1) + (offset_y + y + 1) * width] =
+                    self.framebuffer[(x / scale) + (y / scale) * 160];
             }
         }
     }

@@ -21,7 +21,7 @@ impl GameBoy {
             }
 
             let mut _stdin = io::stdin();
-            if prev != self.ppu_ly && self.ppu_ly % 144 == 0 {
+            if prev != self.ppu_ly && self.ppu_ly == 144 {
                 break;
             }
             if (self.io[0x40] & 0x80 == 0) && (self.timer_div < 3) {

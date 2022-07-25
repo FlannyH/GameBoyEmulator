@@ -1,46 +1,81 @@
 mod gameboy;
-use gameboy::GameBoy;
-use minifb::{Key, Window, WindowOptions};
+use std::time::Instant;
 
-const WIDTH: usize = 1600;
-const HEIGHT: usize = 900;
+use gameboy::GameBoy;
+use mini_gl_fb::{
+    config,
+    glutin::{dpi::LogicalSize, event_loop::EventLoop},
+};
+extern crate mini_gl_fb;
+
+const DEBUG_WIDTH: usize = 1280;
+const DEBUG_HEIGHT: usize = 720;
+const DEBUG_VIEW_ENABLE: bool = true;
+const WIDTH: usize = 642;
+const HEIGHT: usize = 578;
 
 fn main() {
     // Get our Game Boy
     let mut game_boy = GameBoy::new();
 
     // Create a window
-    let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
+    let mut buffer: Vec<u32> = match DEBUG_VIEW_ENABLE {
+        true => vec![0; DEBUG_WIDTH * DEBUG_HEIGHT],
+        false => vec![0; WIDTH * HEIGHT],
+    };
 
-    let mut window = Window::new(
-        "Test - ESC to exit",
-        WIDTH,
-        HEIGHT,
-        WindowOptions::default(),
-    )
-    .unwrap_or_else(|e| {
-        panic!("{}", e);
-    });
-    //window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
+    let mut event_loop = EventLoop::new();
 
+    let mut window = match DEBUG_VIEW_ENABLE {
+        true => mini_gl_fb::get_fancy(
+            config! {
+                window_title: String::from("Flan's Game Boy Emulator"),
+                window_size: LogicalSize::new(DEBUG_WIDTH as _, DEBUG_HEIGHT as _),
+                buffer_size: Some(LogicalSize::new(DEBUG_WIDTH as _, DEBUG_HEIGHT as _)),
+                invert_y: false,
+            },
+            &event_loop,
+        ),
+        false => mini_gl_fb::get_fancy(
+            config! {
+                window_title: String::from("Flan's Game Boy Emulator"),
+                window_size: LogicalSize::new(WIDTH as _, HEIGHT as _),
+                buffer_size: Some(LogicalSize::new(WIDTH as _, HEIGHT as _)),
+                invert_y: false,
+            },
+            &event_loop,
+        ),
+    };
     // Insert a cartridge
-    game_boy.insert_cartridge("../GameboyEmulator/test_roms/Super Mario Land.gbc");
+    game_boy.insert_cartridge("../GameboyEmulator/test_roms/Super Mario Land.gb");
+
+    let mut now = Instant::now();
 
     // Main loop
-    while window.is_open() && !window.is_key_down(Key::Escape) {
+    window.glutin_handle_basic_input(&mut event_loop, |window, basic_input| {
+        // Handle delta time
+        if now.elapsed().as_secs_f32() < 0.0166666f32 {
+            return true;
+        }
+        now = Instant::now();
+
         // Get input
-        game_boy.update_input(&window);
+        game_boy.update_input(&basic_input);
 
         // Simulate one frame on Game Boy
         game_boy.run_frame();
 
         // Render parts of memory
-        game_boy.render_memory(&mut buffer, 0x8000, 16, 24, 8, 8, 2);
-        game_boy.render_memory(&mut buffer, 0x0000, 32, 32, 272, 8, 1);
-        game_boy.render_memory(&mut buffer, 0x4000, 32, 32, 536, 8, 1);
-        game_boy.render_screen(&mut buffer, 792, 8);
+        if DEBUG_VIEW_ENABLE {
+            game_boy.render_memory(&mut buffer, 0x8000, 16, 24, 8, 8, 2);
+            game_boy.render_memory(&mut buffer, 0x0000, 32, 32, 272, 8, 1);
+            game_boy.render_memory(&mut buffer, 0x4000, 32, 32, 536, 8, 1);
+            game_boy.render_screen(&mut buffer, 792, 8, 2, DEBUG_WIDTH);
+        } else {
+            game_boy.render_screen(&mut buffer, 0, 0, 4, WIDTH)
+        }
+        window.update_buffer(&buffer);
 
-        window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
-    }
-    std::fs::write("times.bin", game_boy.times).expect("Couldnt write to file");
+        true
+    });
 }

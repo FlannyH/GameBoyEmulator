@@ -21,3 +21,5 @@ GameboyEmulator/test_roms/*.sav
 GameboyEmulator/test_roms/Super Mario Land.gbc
 GameboyEmulator/log.txt
 GameboyEmulator/log2.txt
+GameboyEmulator/test_roms/Pokemon Blue.gbc
+GameboyEmulator/test_roms/Tetris.gb
