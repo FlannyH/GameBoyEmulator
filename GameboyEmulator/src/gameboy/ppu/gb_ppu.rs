@@ -12,11 +12,23 @@ enum LcdInterruptMasks {
 
 impl GameBoy {
     pub(in crate) fn run_ppu_cycle(&mut self) {
+        if self.io[0x40] & 0x80 == 0
+        {
+            self.ppu_dots_into_curr_line = 0;
+            self.ppu_dots_into_curr_mode = 0;
+            self.ppu_mode = 2;
+            self.ppu_ly = 0;
+            self.ppu_lx = 0;
+        }
         match self.ppu_mode {
             2 => {
                 // OAM scanning
                 // TODO: Fetch all the sprites and filter them
-                if self.ppu_dots_into_curr_mode == 1 {}
+                if self.ppu_dots_into_curr_mode == 1 {
+                    if (self.io[0x41] & LcdInterruptMasks::Oam as u8) > 0 {
+                        self.io[0x0F] |= InterruptMasks::Lcd as u8;
+                    }
+                }
 
                 // After this is all done, go into ppu mode 3
                 if self.ppu_dots_into_curr_mode == 79 {
@@ -140,9 +152,6 @@ impl GameBoy {
                         self.io[0x0F] |= InterruptMasks::Vblank as u8;
                     } else {
                         self.ppu_mode = 2;
-                        if (self.io[0x41] & LcdInterruptMasks::Oam as u8) > 0 {
-                            self.io[0x0F] |= InterruptMasks::Lcd as u8;
-                        }
                     }
                 }
             }
@@ -157,9 +166,6 @@ impl GameBoy {
                     self.ppu_mode = 2;
                     self.ppu_ly = 0;
                     self.ppu_lx = 0;
-                    if (self.io[0x41] & LcdInterruptMasks::Oam as u8) > 0 {
-                        self.io[0x0F] |= InterruptMasks::Lcd as u8;
-                    }
                 }
             }
             _ => panic!(),
