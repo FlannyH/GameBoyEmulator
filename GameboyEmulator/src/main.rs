@@ -28,6 +28,9 @@ fn main() {
 
     // Main loop
     while window.is_open() && !window.is_key_down(Key::Escape) {
+        // Get input
+        game_boy.update_input(&window);
+
         // Simulate one frame on Game Boy
         game_boy.run_frame();
 

@@ -81,6 +81,7 @@ pub struct GameBoy {
     timer_overflow: bool,
     oam_dma_counter: u8,
     oam_dma_source: u16,
+    joypad_state: u8,
 
     // Debug
     debug_enabled: bool,

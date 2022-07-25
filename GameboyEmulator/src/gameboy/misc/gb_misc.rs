@@ -56,6 +56,7 @@ impl GameBoy {
             ppu_sprite_buffer: Vec::new(),
             oam_dma_counter: 0,
             oam_dma_source: 0,
+            joypad_state: 0,
         };
 
         // Init RNG
