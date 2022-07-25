@@ -10,9 +10,15 @@ pub enum InterruptMasks {
 
 impl GameBoy {
     pub(super) fn handle_interrupts(&mut self) {
+        // Let's see if there was an interrupt, we might want to wake the CPU up
+        if self.io[0x0F] & self.ie > 0 {
+            // Hey CPU wake up new interrupt just dropped
+            self.is_halted = false; // CPU: god dammit interrupt handler my nap was so good OH SHIT INTERRUPT??
+        }
+
         // If interrupts are not enabled, return
         if self.ime == 0 {
-            return;
+            return; // CPU: for fucks sake interrupt handler i thought i put you on do not disturb mode
         }
 
         while self.io[0x0F] & self.ie > 0 {
@@ -66,7 +72,7 @@ impl GameBoy {
     // Should be called every CPU cycle
     pub(super) fn handle_timer(&mut self) {
         // Increment internal counter
-        self.cpu_cycle_counter += 1;
+        self.cpu_cycle_counter += 4;
 
         // DIV register
         if self.cpu_cycle_counter % 256 == 0 {
@@ -90,15 +96,15 @@ impl GameBoy {
         // Update timer
         if self.cpu_cycle_counter % timer_period == 0 {
             self.io[0x05] = self.io[0x05].wrapping_add(1);
-        }
 
-        // Handle overflow
-        if self.io[0x05] == 0x00 {
-            // Request interrupt
-            self.io[0x0F] |= InterruptMasks::Timer as u8;
+            // Handle overflow
+            if self.io[0x05] == 0x00 {
+                // Request interrupt
+                self.io[0x0F] |= InterruptMasks::Timer as u8;
 
-            // Set Timer Counter to Timer Modulo
-            self.io[0x05] = self.io[0x06];
+                // Set Timer Counter to Timer Modulo
+                self.io[0x05] = self.io[0x06];
+            }
         }
     }
 }

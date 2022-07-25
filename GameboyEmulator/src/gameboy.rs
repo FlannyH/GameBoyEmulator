@@ -68,6 +68,12 @@ pub struct GameBoy {
     rom_chip_enabled: bool,
     curr_rom_bank: u8,
     cpu_cycle_counter: u32,
+    is_halted: bool,
+
+    // Debug
+    DEBUG_ENABLED: bool,
+    DEBUG_BIOS: bool,
+    DEBUG_REQUIRE_INPUT: bool,
 }
 
 impl GameBoy {

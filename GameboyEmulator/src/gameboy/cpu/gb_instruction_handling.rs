@@ -4,10 +4,6 @@ use crate::gameboy::FlagMask;
 
 use super::super::GameBoy;
 
-const DEBUG_ENABLED: bool = true;
-const DEBUG_BIOS: bool = false;
-const DEBUG_REQUIRE_INPUT: bool = true;
-
 impl GameBoy {
     pub(in crate) fn run_frame(&mut self) {
         loop {
@@ -20,16 +16,20 @@ impl GameBoy {
             if prev != self.ppu_ly && self.ppu_ly % 144 == 0 {
                 break;
             }
-            if DEBUG_ENABLED && (self.new_instruction_tick) {
-                if self.rom_chip_enabled == DEBUG_BIOS {
+            // This is the most scuffed breakpoint ever but hey sometimes that's what ya gotta do
+            //if self.pc == 0xC319 {
+            //    self.DEBUG_ENABLED = true;
+            //}
+            if self.DEBUG_ENABLED && (self.new_instruction_tick) && self.pc >= 0xC000 {
+                if self.rom_chip_enabled == self.DEBUG_BIOS {
                     println!("Opcode: ${:02X}, PC: ${:04X}", self.last_opcode, self.pc);
                     self.print_reg_state();
-                    if DEBUG_REQUIRE_INPUT {
+                    if self.DEBUG_REQUIRE_INPUT {
                         let _ = _stdin.read(&mut [0u8]).unwrap();
                         let _ = _stdin.read(&mut [0u8]).unwrap();
                     }
                 }
-                if self.rom_chip_enabled == DEBUG_BIOS {
+                if self.rom_chip_enabled == self.DEBUG_BIOS {
                     break;
                 }
             }
@@ -53,6 +53,11 @@ impl GameBoy {
 
         // Interrupts
         self.handle_interrupts();
+
+        // If halted, stop here
+        if self.is_halted {
+            return;
+        }
 
         // Read byte from PC
         let opcode = self.fetch_next_byte_from_pc();
@@ -109,18 +114,12 @@ impl GameBoy {
                 self.reg_a = self.rr(self.reg_a);
                 self.reg_f &= FlagMask::CARRY as u8;
             }
-            0x76 => {} //self.dump_memory("ram_dump", 0xC000, 0x2000), // HALT
+            0x76 => self.is_halted = true,
             0xCB => {
                 self.handle_prefixed_instructions(opcode);
             } // CB - prefixed instructions mostly for bit shifting, setting, and clearing
-            0xF3 => {
-                self.ime = 0;
-                return true;
-            }
-            0xFB => {
-                self.ime = 1;
-                return true;
-            }
+            0xF3 => self.ime = 0,
+            0xFB => self.ime = 1,
             _ => return false,
         }
         return true;
