@@ -102,14 +102,7 @@ impl GameBoy {
         // Render outline
         let end_x = offset_x + 160 * scale;
         let end_y = offset_y + 144 * scale;
-        for x in (offset_x.wrapping_sub(1))..=(end_x + 1) {
-            buffer[x + (offset_y - 1) * width] = 0xFFFF00FF;
-            buffer[x + (end_y + 1) * width] = 0xFFFF00FF;
-        }
-        for y in (offset_x.wrapping_sub(1))..=(end_y + 1) {
-            buffer[(offset_x - 1) + y * width] = 0xFFFF00FF;
-            buffer[(end_x + 1) + y * width] = 0xFFFF00FF;
-        }
+        draw_line_border(buffer, offset_x, end_x, offset_y, end_y, width);
 
         for y in 0..144 * scale {
             for x in 0..160 * scale {
@@ -117,5 +110,85 @@ impl GameBoy {
                     self.framebuffer[(x / scale) + (y / scale) * 160];
             }
         }
+    }
+
+    pub(crate) fn render_palettes(
+        &self,
+        buffer: &mut Vec<u32>,
+        offset_x: usize,
+        offset_y: usize,
+        scale: usize,
+        width: usize,
+    ) {
+        // Get palettes from IO
+        // i was really about to type `ldh a, [$ff47]` wow
+        let bgp = [
+            self.io[0x47] >> 0 & 0x03,
+            self.io[0x47] >> 2 & 0x03,
+            self.io[0x47] >> 4 & 0x03,
+            self.io[0x47] >> 6 & 0x03,
+        ];
+        let obp0 = [
+            self.io[0x48] >> 0 & 0x03,
+            self.io[0x48] >> 2 & 0x03,
+            self.io[0x48] >> 4 & 0x03,
+            self.io[0x48] >> 6 & 0x03,
+        ];
+        let obp1 = [
+            self.io[0x49] >> 0 & 0x03,
+            self.io[0x49] >> 2 & 0x03,
+            self.io[0x49] >> 4 & 0x03,
+            self.io[0x49] >> 6 & 0x03,
+        ];
+        let palettes = [bgp, obp0, obp1];
+
+        // Draw the palettes
+        for y in 0..3 {
+            for x in 0..4 {
+                draw_rectangle(
+                    buffer,
+                    (((palettes[y][x] ^ 0b11) as u32) * (235 / 3)) * 0x00010101,
+                    offset_x + (scale) * x,
+                    offset_x + (scale) * (x + 1),
+                    offset_y + (scale) * y,
+                    offset_y + (scale) * (y + 1),
+                    width,
+                );
+                draw_line_border(
+                    buffer,
+                    offset_x + (scale) * x,
+                    offset_x + (scale) * (x + 1),
+                    offset_y + (scale) * y,
+                    offset_y + (scale) * (y + 1),
+                    width,
+                );
+            }
+        }
+    }
+}
+
+fn draw_rectangle(buffer: &mut Vec<u32>, color: u32, x_1: usize, x_2: usize, y_1: usize, y_2: usize, width: usize) {
+    for y in y_1..=y_2 {
+        for x in x_1..=x_2 {
+            buffer[x + y * width] = color;
+        }
+    }
+}
+
+fn draw_line_border(
+    buffer: &mut Vec<u32>,
+    x_1: usize,
+    x_2: usize,
+    y_1: usize,
+    y_2: usize,
+    buffer_width: usize,
+) {
+    for x in (x_1.wrapping_sub(1))..=(x_2 + 1) {
+        buffer[x + (y_1 - 1) * buffer_width] = 0xFFFF00FF;
+        buffer[x + (y_2 + 1) * buffer_width] = 0xFFFF00FF;
+    }
+    for y in (y_1.wrapping_sub(1))..=(y_2 + 1) {
+        buffer[(x_1 - 1) + y * buffer_width] = 0xFFFF00FF;
+        buffer[(x_2 + 1) + y * buffer_width] = 0xFFFF00FF;
     }
 }

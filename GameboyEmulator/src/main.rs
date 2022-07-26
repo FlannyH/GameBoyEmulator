@@ -47,7 +47,7 @@ fn main() {
         ),
     };
     // Insert a cartridge
-    game_boy.insert_cartridge("../GameboyEmulator/test_roms/Super Mario Land.gb");
+    game_boy.insert_cartridge("../GameboyEmulator/test_roms/Pokemon Blue.gbc");
 
     let mut now = Instant::now();
 
@@ -70,6 +70,7 @@ fn main() {
             game_boy.render_memory(&mut buffer, 0x8000, 16, 24, 8, 8, 2);
             game_boy.render_memory(&mut buffer, 0x0000, 32, 32, 272, 8, 1);
             game_boy.render_memory(&mut buffer, 0x4000, 32, 32, 536, 8, 1);
+            game_boy.render_palettes(&mut buffer, 272, 272, 24, DEBUG_WIDTH);
             game_boy.render_screen(&mut buffer, 792, 8, 2, DEBUG_WIDTH);
         } else {
             game_boy.render_screen(&mut buffer, 0, 0, 4, WIDTH)
