@@ -18,7 +18,7 @@ impl GameBoy {
             self.ppu_mode = 0;
             self.ppu_ly = 0;
             self.ppu_lx = 0;
-            self.io[0x40] = 0;
+            //self.io[0x40] = 0;
             self.io[0x41] = (self.io[0x41] & 0b01111000) | 0b10000111;
             return;
         }
@@ -187,6 +187,9 @@ impl GameBoy {
                         if (self.io[0x40] & 0x80) == 0 {
                             self.framebuffer[self.ppu_lx as usize + self.ppu_ly as usize * 160] =
                                 0xFFFFFFFF;
+                        } else if (self.io[0x40] & 0x01) == 0 {
+                            self.framebuffer[self.ppu_lx as usize + self.ppu_ly as usize * 160] =
+                                0xFF00EAEA;
                         } else {
                             self.framebuffer[self.ppu_lx as usize + self.ppu_ly as usize * 160] =
                                 final_color;
