@@ -106,7 +106,9 @@ impl GameBoy {
             }
             // External RAM
             0xA000..=0xBFFF => {
-                // ignore
+                if self.eram_chip_enabled {
+                    self.eram[address as usize & 0x1FFF + 0x2000 * self.curr_eram_bank as usize] = value;
+                } //else ignore
             }
             // WRAM bank 0
             0xC000..=0xCFFF => self.wram[(address & 0x1FFF) as usize] = value,
