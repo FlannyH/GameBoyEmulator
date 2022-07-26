@@ -8,7 +8,7 @@
  - Put the boot rom file into that new folder with the file name `dmg_boot.bin`
  - For now, you have to specify the ROM path manually in the code: Go to `GameBoyEmulator/GameboyEmulator/src/main.rs` at line 50, and put the full path to your ROM in the `game_boy.insert_cartridge("C:/insert/path/here.gb");`
  - Open a command prompt and navigate to the `GameBoyEmulator/GameboyEmulator/` folder
- - Run the command `cargo run` to run it, or `cargo build` to build it
+ - Run the command `cargo run --release` to run it, or `cargo build --release` to build it (you need `--release`, the debug build runs very slow)
 
  Your folder structure should look something like this:
 ```
