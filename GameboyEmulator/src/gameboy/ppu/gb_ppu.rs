@@ -12,6 +12,7 @@ enum LcdInterruptMasks {
 
 impl GameBoy {
     pub(in crate) fn run_ppu_cycle(&mut self) {
+        let ppu_y_prev = self.ppu_ly;
         if self.io[0x40] & 0x80 == 0 {
             self.ppu_dots_into_curr_line = 0;
             self.ppu_dots_into_curr_mode = 0;
@@ -22,6 +23,12 @@ impl GameBoy {
             self.io[0x41] = (self.io[0x41] & 0b01111000) | 0b10000111;
             //return;
         }
+
+        let sprite_8_or_16: usize = match self.io[0x40] & (1 << 2) {
+            0 => 8,
+            _ => 16,
+        };
+
         match self.ppu_mode {
             2 => {
                 // OAM scanning
@@ -38,7 +45,7 @@ impl GameBoy {
                     // Fetch sprites on this scanline
                     for sprite_base_address in (0x00..0xA0).step_by(4) {
                         // OAM entry order: Y, X, tile, attributes
-                        if (self.ppu_ly..self.ppu_ly + 8)
+                        if (self.ppu_ly..self.ppu_ly + sprite_8_or_16 as u8)
                             .contains(&(self.oam[sprite_base_address + 0].wrapping_sub(9)))
                         {
                             self.ppu_sprite_buffer.push(OamEntry {
@@ -62,20 +69,54 @@ impl GameBoy {
             }
             3 => {
                 // Pixel drawing
-                // If this is the first cycle in this mode, set the PPU's tilemap location, + the amount of pixels to throw away, and then clear the FIFO
+                // If this is the first cycle in this mode, set the PPU's tilemap location, + the amount of pixels to throw away, disable the window, and then clear the FIFO
                 if self.ppu_dots_into_curr_mode == 1 {
                     self.ppu_lx = 0;
                     self.ppu_tilemap_x = self.io[0x43];
                     self.ppu_tilemap_y = self.io[0x42].wrapping_add(self.ppu_ly);
                     self.ppu_pixels_to_discard = self.io[0x43] & 0x07;
+                    self.ppu_fifo.clear();
+                    self.window_is_rendering = false;
+                    //println!("LCDC: {:08b}, WX: {}, WY: {}, LX: {}, LY: {}", self.io[0x40], self.io[0x4B], self.io[0x4A], self.ppu_lx, self.ppu_ly)
+                }
+
+                // If the window is enabled, and the window triggers at this coordinate
+                if (self.io[0x40] & (1 << 5) > 0)
+                    && (self.io[0x4B]-7 <= self.ppu_lx)
+                    && (self.ppu_ly >= self.io[0x4A])
+                    && self.window_is_rendering == false
+                {
+                    // Set window enable flag in PPU
+                    self.window_is_rendering = true;
+
+                    // Clear the fifo; we don't need this data anymore
+                    self.ppu_fifo.clear();
+
+                    // Change the tilemap pixel locations to the top left of the tile map + the relative Y coordinate
+                    if self.io[0x4B] < 8
+                    {
+                        self.ppu_pixels_to_discard = 7 - self.io[0x4B];
+                    }
+                    self.ppu_tilemap_x = 0;
+                    self.ppu_tilemap_y = self.ppu_ly - self.io[0x4A];
+
+                    //println!("Enabled window rendering at screen coord ({}, {}), and window coord ({}, {})", self.ppu_lx, self.ppu_ly, self.ppu_tilemap_x, self.ppu_tilemap_y);
                 }
 
                 // If the PPU FIFO is dry, fetch 8 pixels
                 if self.ppu_fifo.len() <= 8 {
                     // Create address from tilemap x and y
                     let mut tile_index_sample_address: usize = 0x9800;
-                    if (self.io[0x40] & (1 << 3)) > 0 {
-                        tile_index_sample_address += 0x0400;
+
+                    // If the window is rendering, use a different bit to check what tile map to use
+                    if self.window_is_rendering == false {
+                        if (self.io[0x40] & (1 << 3)) > 0 {
+                            tile_index_sample_address += 0x0400;
+                        }
+                    } else {
+                        if (self.io[0x40] & (1 << 6)) > 0 {
+                            tile_index_sample_address += 0x0400;
+                        }
                     }
 
                     tile_index_sample_address += 0x001 * ((self.ppu_tilemap_x as usize) >> 3);
@@ -118,7 +159,9 @@ impl GameBoy {
                 if self.io[0x40] & (1 << 1) > 0 {
                     // Loop over each sprite in this scanline
                     for sprite in &self.ppu_sprite_buffer {
-                        if (sprite.posx.wrapping_sub(8)) == self.ppu_lx {
+                        if sprite.posx == self.ppu_lx.wrapping_add(8)
+                            || sprite.posx < 8 && self.ppu_lx == 0
+                        {
                             // Get Y of the sprite tile we want
                             let sprite_tile_y = (sprite.posy - 9) - self.ppu_ly;
 
@@ -126,7 +169,8 @@ impl GameBoy {
                             let mut tile_data_sample_address = 0x8000;
                             tile_data_sample_address += (sprite.tile as usize) << 4;
                             if sprite.attr & 0x40 == 0 {
-                                tile_data_sample_address += 14 - ((sprite_tile_y as usize) * 2);
+                                tile_data_sample_address +=
+                                    (sprite_8_or_16 - 1) * 2 - ((sprite_tile_y as usize) * 2);
                             } else {
                                 tile_data_sample_address += (sprite_tile_y as usize) * 2;
                             }
@@ -154,18 +198,27 @@ impl GameBoy {
                                 };
 
                                 // Handle flipping
-                                let fifo_index = match sprite.attr & 0x20 {
-                                    0 => 7 - x,
-                                    _ => x,
+                                let mut fifo_index: isize = match sprite.attr & 0x20 {
+                                    0 => 7 - x as isize,
+                                    _ => x as isize,
                                 };
+
+                                // Handle sprites with x < 8
+                                if sprite.posx < 8 {
+                                    fifo_index -= 8 - sprite.posx as isize;
+                                }
+
+                                if fifo_index < 0 {
+                                    continue;
+                                }
 
                                 // Replace the tilemap fifo element if the color isn't 0
                                 if (new_fifo_element.color != 0)
                                     && !((sprite.attr & 0x80 > 0)
-                                        && (self.ppu_fifo[fifo_index].source == 0
-                                            && self.ppu_fifo[fifo_index].color != 0))
+                                        && (self.ppu_fifo[fifo_index as usize].source == 0
+                                            && self.ppu_fifo[fifo_index as usize].color != 0))
                                 {
-                                    self.ppu_fifo[fifo_index] = new_fifo_element;
+                                    self.ppu_fifo[fifo_index as usize] = new_fifo_element;
                                 }
                             }
                         }
@@ -262,7 +315,7 @@ impl GameBoy {
         self.io[0x44] = self.ppu_ly;
 
         // Request LCD interrupt if LY==LYC
-        if self.ppu_ly == self.io[0x45] && self.ppu_ly > 0 {
+        if self.ppu_ly == self.io[0x45] && self.ppu_ly > 0 && ppu_y_prev != self.ppu_ly {
             self.io[0x41] |= 1 << 2;
             if (self.io[0x41] & LcdInterruptMasks::Lyc as u8) > 0 {
                 self.io[0x0F] |= InterruptMasks::Lcd as u8;

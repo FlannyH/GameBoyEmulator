@@ -83,6 +83,7 @@ pub struct GameBoy {
     oam_dma_counter: u8,
     oam_dma_source: u16,
     joypad_state: u8,
+    window_is_rendering: bool,
 
     // Debug
     debug_enabled: bool,

@@ -60,6 +60,7 @@ impl GameBoy {
             eram: Vec::new(),
             eram_chip_enabled: false,
             curr_eram_bank: 0,
+            window_is_rendering: false,
         };
 
         // Init RNG

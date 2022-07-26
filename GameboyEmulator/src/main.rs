@@ -47,7 +47,7 @@ fn main() {
         ),
     };
     // Insert a cartridge
-    game_boy.insert_cartridge("../GameboyEmulator/test_roms/FlanSparx.gbc");
+    game_boy.insert_cartridge("../GameboyEmulator/test_roms/Pokemon Blue.gbc");
 
     let mut now = Instant::now();
 
