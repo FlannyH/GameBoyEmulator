@@ -32,9 +32,6 @@ impl GameBoy {
             0xFF50 => self.rom_chip_enabled = false,
             _ => self.io[(address & 0x7F) as usize] = value,
         }
-        if address == 0xFF40 {
-            println!("value ${:02X} written to ${:04X}", value, address);
-        }
         return true;
     }
 
@@ -52,9 +49,6 @@ impl GameBoy {
             } // TODO: actually implement input
             _ => self.io[(address & 0x7F) as usize],
         };
-        if address == 0xFF40 {
-            println!("value ${:02X} read from ${:04X}", result, address);
-        }
         return result;
     }
 }

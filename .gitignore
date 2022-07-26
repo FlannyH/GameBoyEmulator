@@ -23,3 +23,5 @@ GameboyEmulator/log.txt
 GameboyEmulator/log2.txt
 GameboyEmulator/test_roms/Pokemon Blue.gbc
 GameboyEmulator/test_roms/Tetris.gb
+GameboyEmulator/test_roms/Pokemon Blue.sym
+GameboyEmulator/test_roms/smurfs.gb

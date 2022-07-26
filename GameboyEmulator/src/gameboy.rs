@@ -84,6 +84,7 @@ pub struct GameBoy {
     oam_dma_source: u16,
     joypad_state: u8,
     window_is_rendering: bool,
+    save_path: String,
 
     // Debug
     debug_enabled: bool,
@@ -164,6 +165,12 @@ impl GameBoy {
                     width,
                 );
             }
+        }
+    }
+
+    pub(crate) fn save_game_if_possible(&self) {
+        if self.eram.len() > 0 {
+            std::fs::write(self.save_path.as_str(), self.eram.clone()).expect("Couldn't write save file");
         }
     }
 }

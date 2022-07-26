@@ -13,6 +13,12 @@ impl GameBoy {
             self.run_ppu_cycle();
             self.run_ppu_cycle();
 
+            // Break on pokemon Place String while the tempo is the same as the intro music (this is hella scuffed lmao)
+            if self.pc == 0x3C58 && self.wram[0x00E9] == 0x98{ 
+                //self.debug_enabled=true;
+            }
+
+
             if self.oam_dma_counter > 0 {
                 self.oam[160 - self.oam_dma_counter as usize] = self.fetch_byte_from_memory(
                     self.oam_dma_source + (160 - self.oam_dma_counter as u16),
@@ -25,12 +31,12 @@ impl GameBoy {
                 break;
             }
             if (self.io[0x40] & 0x80 == 0) && (self.timer_div < 3) {
-                //break;
+                break;
             }
             if self.debug_enabled && (self.new_instruction_tick) {
                 if self.rom_chip_enabled == self.debug_bios {
-                    println!("Opcode: ${:02X}, PC: ${:04X}", self.last_opcode, self.pc);
-                    self.print_reg_state();
+                    println!("Opcode: ${:02X}, PC: ${:04X}, IF: %{:08b}, IE: %{:08b}", self.last_opcode, self.pc, self.io[0x0F], self.ie);
+                    //self.print_reg_state();
                     if self.debug_require_input {
                         let _ = _stdin.read(&mut [0u8]).unwrap();
                         let _ = _stdin.read(&mut [0u8]).unwrap();

@@ -61,6 +61,7 @@ impl GameBoy {
             eram_chip_enabled: false,
             curr_eram_bank: 0,
             window_is_rendering: false,
+            save_path: "".to_string(),
         };
 
         // Init RNG

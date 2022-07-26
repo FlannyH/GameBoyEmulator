@@ -79,4 +79,6 @@ fn main() {
 
         true
     });
+    game_boy.save_game_if_possible();
+    println!("Shut down");
 }

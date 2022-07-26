@@ -281,6 +281,7 @@ impl GameBoy {
                             self.io[0x0F] |= InterruptMasks::Lcd as u8;
                         }
                         self.io[0x0F] |= InterruptMasks::Vblank as u8;
+                        //println!("VBLANK interrupt requested");
                     } else {
                         self.ppu_mode = 2;
                     }

@@ -81,14 +81,9 @@ impl GameBoy {
                 // TODO: implement mapper stuff
                 if (0x0000..=0x1FFF).contains(&address) {
                     self.eram_chip_enabled = value & 0x0F == 0x0A;
-                    println!(
-                        "self.eram_chip_enabled is now set to {}",
-                        self.eram_chip_enabled
-                    );
-                    println!("address that got us here {:04X}", address);
                 }
                 if (0x2000..=0x3FFF).contains(&address) {
-                    self.curr_rom_bank = value & 0x1F;
+                    self.curr_rom_bank = value;
                     if self.curr_rom_bank == 0 {
                         self.curr_rom_bank = 1;
                     }
@@ -130,8 +125,12 @@ impl GameBoy {
             }
             // OAM sprite attribute table
             0xFE00..=0xFE9F => {
-                // TODO: make sure this only returns the right value when PPU is unlocked, otherwise return 0xFF
-                self.oam[(address & 0xFF) as usize] = value;
+                // Only return the byte if the PPU is not accessing this memory
+                match self.ppu_mode {
+                    0 => self.oam[(address & 0xFF) as usize] = value,
+                    1 => self.oam[(address & 0xFF) as usize] = value,
+                    _ => (),
+                }
             }
             // Not usable
             0xFEA0..=0xFEFF => (),
@@ -146,7 +145,9 @@ impl GameBoy {
             // HRAM
             0xFF80..=0xFFFE => self.hram[(address & 0x7F) as usize] = value,
             // Interrupts Enable Register
-            0xFFFF => self.ie = value,
+            0xFFFF => {
+                self.ie = value;
+            }
         }
     }
 

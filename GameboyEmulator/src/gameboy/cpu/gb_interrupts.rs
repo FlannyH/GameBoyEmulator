@@ -36,6 +36,8 @@ impl GameBoy {
                 // Call the interrupt handler
                 self.push_stack(self.pc);
                 self.jump_absolute(0x0040);
+
+                //println!("VBLANK interrupt request serviced")
             }
 
             // The rest of the interrupts follow the same logic, so I will omit comments from here on
