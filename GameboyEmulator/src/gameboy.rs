@@ -167,7 +167,15 @@ impl GameBoy {
     }
 }
 
-fn draw_rectangle(buffer: &mut Vec<u32>, color: u32, x_1: usize, x_2: usize, y_1: usize, y_2: usize, width: usize) {
+fn draw_rectangle(
+    buffer: &mut Vec<u32>,
+    color: u32,
+    x_1: usize,
+    x_2: usize,
+    y_1: usize,
+    y_2: usize,
+    width: usize,
+) {
     for y in y_1..=y_2 {
         for x in x_1..=x_2 {
             buffer[x + y * width] = color;

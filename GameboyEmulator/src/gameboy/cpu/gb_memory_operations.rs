@@ -81,7 +81,10 @@ impl GameBoy {
                 // TODO: implement mapper stuff
                 if (0x0000..=0x1FFF).contains(&address) {
                     self.eram_chip_enabled = value & 0x0F == 0x0A;
-                    println!("self.eram_chip_enabled is now set to {}", self.eram_chip_enabled);
+                    println!(
+                        "self.eram_chip_enabled is now set to {}",
+                        self.eram_chip_enabled
+                    );
                     println!("address that got us here {:04X}", address);
                 }
                 if (0x2000..=0x3FFF).contains(&address) {
@@ -96,7 +99,7 @@ impl GameBoy {
                 if (0x4000..=0x5FFF).contains(&address) {
                     self.curr_eram_bank = (value as usize % (self.eram.len() / 8192)) as u8;
                 }
-            },
+            }
             // VRAM bank 0 or 1
             0x8000..=0x9FFF => {
                 // Only store the value if the PPU is not reading from VRAM
@@ -107,7 +110,8 @@ impl GameBoy {
             // External RAM
             0xA000..=0xBFFF => {
                 if self.eram_chip_enabled {
-                    self.eram[address as usize & 0x1FFF + 0x2000 * self.curr_eram_bank as usize] = value;
+                    self.eram[address as usize & 0x1FFF + 0x2000 * self.curr_eram_bank as usize] =
+                        value;
                 } //else ignore
             }
             // WRAM bank 0

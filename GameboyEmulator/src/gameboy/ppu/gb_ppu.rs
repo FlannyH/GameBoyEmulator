@@ -20,7 +20,7 @@ impl GameBoy {
             self.ppu_lx = 0;
             //self.io[0x40] = 0;
             self.io[0x41] = (self.io[0x41] & 0b01111000) | 0b10000111;
-            return;
+            //return;
         }
         match self.ppu_mode {
             2 => {
@@ -74,7 +74,7 @@ impl GameBoy {
                 if self.ppu_fifo.len() <= 8 {
                     // Create address from tilemap x and y
                     let mut tile_index_sample_address: usize = 0x9800;
-                    if (self.io[0x40] & 0x08) > 0 {
+                    if (self.io[0x40] & (1 << 3)) > 0 {
                         tile_index_sample_address += 0x0400;
                     }
 
@@ -89,7 +89,7 @@ impl GameBoy {
                     tile_data_sample_address += (tile_index as usize) << 4;
                     tile_data_sample_address += (self.ppu_tilemap_y as usize & 0x07) * 2;
 
-                    if (tile_data_sample_address < 0x8800) && (self.io[0x40] & 0b00010000 == 0) {
+                    if (tile_data_sample_address < 0x8800) && (self.io[0x40] & (1 << 4) == 0) {
                         tile_data_sample_address += 0x1000;
                     }
 
@@ -118,7 +118,7 @@ impl GameBoy {
                 if self.io[0x40] & (1 << 1) > 0 {
                     // Loop over each sprite in this scanline
                     for sprite in &self.ppu_sprite_buffer {
-                        if (sprite.posx - 8) == self.ppu_lx {
+                        if (sprite.posx.wrapping_sub(8)) == self.ppu_lx {
                             // Get Y of the sprite tile we want
                             let sprite_tile_y = (sprite.posy - 9) - self.ppu_ly;
 
@@ -161,9 +161,9 @@ impl GameBoy {
 
                                 // Replace the tilemap fifo element if the color isn't 0
                                 if (new_fifo_element.color != 0)
-                                    && !(((sprite.attr & 0x80 > 0)
+                                    && !((sprite.attr & 0x80 > 0)
                                         && (self.ppu_fifo[fifo_index].source == 0
-                                            && self.ppu_fifo[fifo_index].color != 0)))
+                                            && self.ppu_fifo[fifo_index].color != 0))
                                 {
                                     self.ppu_fifo[fifo_index] = new_fifo_element;
                                 }
@@ -186,10 +186,10 @@ impl GameBoy {
                             (((curr_pixel_color ^ 0b11) as u32) * (235 / 3)) * 0x00010101;
                         if (self.io[0x40] & 0x80) == 0 {
                             self.framebuffer[self.ppu_lx as usize + self.ppu_ly as usize * 160] =
-                                0xFFFFFFFF;
+                                0xFFFFFFFF; // emulate the extra white from the screen being off
                         } else if (self.io[0x40] & 0x01) == 0 {
                             self.framebuffer[self.ppu_lx as usize + self.ppu_ly as usize * 160] =
-                                0xFF00EAEA;
+                                0xFFEAEAEA;
                         } else {
                             self.framebuffer[self.ppu_lx as usize + self.ppu_ly as usize * 160] =
                                 final_color;
