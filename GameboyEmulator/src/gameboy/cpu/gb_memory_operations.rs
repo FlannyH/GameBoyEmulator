@@ -18,8 +18,13 @@ impl GameBoy {
             }
             // ROM bank 1 or higher
             0x4000..=0x7FFF => {
-                self.rom[(0x4000 * (self.curr_rom_bank as usize) + ((address & 0x3FFF) as usize))
-                    % self.rom.len()]
+                if self.rom.len() > 0 {
+                    self.rom[(0x4000 * (self.curr_rom_bank as usize)
+                        + ((address & 0x3FFF) as usize))
+                        % self.rom.len()]
+                } else {
+                    0xFF
+                }
             }
             // VRAM bank 0 or 1
             0x8000..=0x9FFF => {

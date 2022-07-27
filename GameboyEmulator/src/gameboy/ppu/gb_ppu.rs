@@ -82,7 +82,7 @@ impl GameBoy {
 
                 // If the window is enabled, and the window triggers at this coordinate
                 if (self.io[0x40] & (1 << 5) > 0)
-                    && (self.io[0x4B]-7 <= self.ppu_lx)
+                    && (self.io[0x4B] - 7 <= self.ppu_lx)
                     && (self.ppu_ly >= self.io[0x4A])
                     && self.window_is_rendering == false
                 {
@@ -93,8 +93,7 @@ impl GameBoy {
                     self.ppu_fifo.clear();
 
                     // Change the tilemap pixel locations to the top left of the tile map + the relative Y coordinate
-                    if self.io[0x4B] < 8
-                    {
+                    if self.io[0x4B] < 8 {
                         self.ppu_pixels_to_discard = 7 - self.io[0x4B];
                     }
                     self.ppu_tilemap_x = 0;

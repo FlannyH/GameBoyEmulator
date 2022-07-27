@@ -170,7 +170,8 @@ impl GameBoy {
 
     pub(crate) fn save_game_if_possible(&self) {
         if self.eram.len() > 0 {
-            std::fs::write(self.save_path.as_str(), self.eram.clone()).expect("Couldn't write save file");
+            std::fs::write(self.save_path.as_str(), self.eram.clone())
+                .expect("Couldn't write save file");
         }
     }
 }

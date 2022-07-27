@@ -1,5 +1,5 @@
 mod gameboy;
-use std::time::Instant;
+use std::{env, time::Instant};
 
 use gameboy::GameBoy;
 use mini_gl_fb::{
@@ -10,7 +10,7 @@ extern crate mini_gl_fb;
 
 const DEBUG_WIDTH: usize = 1280;
 const DEBUG_HEIGHT: usize = 720;
-const DEBUG_VIEW_ENABLE: bool = true;
+const DEBUG_VIEW_ENABLE: bool = false;
 const WIDTH: usize = 642;
 const HEIGHT: usize = 578;
 
@@ -46,8 +46,14 @@ fn main() {
             &event_loop,
         ),
     };
+
     // Insert a cartridge
-    game_boy.insert_cartridge("../GameboyEmulator/test_roms/Pokemon Blue.gbc");
+    let args: Vec<String> = env::args().collect();
+    if args.len() > 1 {
+        game_boy.insert_cartridge(args[1].as_str());
+    } else {
+        game_boy.insert_cartridge("");
+    }
 
     let mut now = Instant::now();
 

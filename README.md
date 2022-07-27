@@ -1,25 +1,27 @@
 # Flan's Game Boy Emulator
  Game Boy Emulator written in Rust, as a way to get hands-on with the Rust programming language, and creating a proper project using it, while learning some new stuff about the Game Boy as well.
  
-## How to compile and run
- - Make sure you have the Rust compiler installed
- - Download or rip the DMG (Original Fat Game Boy) boot rom
- - Create a new folder inside `GameBoyEmulator/GameboyEmulator/` called `bios/`
- - Put the boot rom file into that new folder with the file name `dmg_boot.bin`
- - For now, you have to specify the ROM path manually in the code: Go to `GameBoyEmulator/GameboyEmulator/src/main.rs` at line 50, and put the full path to your ROM in the `game_boy.insert_cartridge("C:/insert/path/here.gb");`
- - Open a command prompt and navigate to the `GameBoyEmulator/GameboyEmulator/` folder
- - Run the command `cargo run --release` to run it, or `cargo build --release` to build it (you need `--release`, the debug build runs very slow)
+## How to run
+### From release
+1. Download the latest release from the `Releases` tab on this GitHub page
+2. Drag a Game Boy ROM onto `gameboy_emulator.exe`
+3. Have Fun!
 
- Your folder structure should look something like this:
-```
-GameBoyEmulator/
-   GameboyEmulator/
-      bios/
-         dmg_boot.bin
-      src/
-      test_roms/
-      Cargo.lock
-      Cargo.toml
-   ```
-           
- Then open a command prompt in `GameBoyEmulator/GameboyEmulator/` and type `cargo run`.
+### From source
+1. Make sure you have the Rust compiler installed
+2. Open a command prompt and navigate to the `GameBoyEmulator/GameboyEmulator/` folder
+3. Run the command `cargo build --release`
+4. Navigate to the `GameBoyEmulator/GameboyEmulator/target/release/` folder using your file explorer of choice
+5. Drag a Game Boy ROM onto `gameboy_emulator.exe`
+6. Have fun!
+
+## Boot ROM
+If you want to have a real Nintendo boot ROM, follow these steps:
+1. Navigate to the folder where you put the `gameboy_emulator.exe` executable
+2. Create a folder called `bios/`
+3. Put the boot rom file in that newly created `bios/` folder
+4. Rename it to `dmg_boot.bin`
+
+## Future plans
+- Sound support
+- An actual proper UI
