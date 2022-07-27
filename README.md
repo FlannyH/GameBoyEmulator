@@ -2,11 +2,13 @@
  Game Boy Emulator written in Rust, as a way to get hands-on with the Rust programming language, and creating a proper project using it, while learning some new stuff about the Game Boy as well.
  
 ## Controls
-Arrow keys for D-pad
-Z key for B button
-X key for A button
-Right Shift key for Select
-Enter key for Start
+(Sadly not remappable yet)
+- **D-pad**: Arrow keys
+- **B button**: Z key
+- **A button**: X key
+- **Select**: Right Shift key
+- **Start**: Enter key
+
  
 ## How to run
 ### From release
@@ -32,3 +34,5 @@ If you want to have a real Nintendo boot ROM, follow these steps:
 ## Future plans
 - Sound support
 - An actual proper UI
+- Remappable controls
+- Extra palettes?
