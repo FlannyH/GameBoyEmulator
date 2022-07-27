@@ -18,11 +18,12 @@
 
 ### From source
 1. Make sure you have the Rust compiler installed
-2. Open a command prompt and navigate to the `GameBoyEmulator/GameboyEmulator/` folder
-3. Run the command `cargo build --release`
-4. Navigate to the `GameBoyEmulator/GameboyEmulator/target/release/` folder using your file explorer of choice
-5. Drag a Game Boy ROM onto `gameboy_emulator.exe`
-6. Have fun!
+2. Clone this repository
+3. Open a command prompt and navigate to the `GameBoyEmulator/GameboyEmulator/` folder
+4. Run the command `cargo build --release`
+5. Navigate to the `GameBoyEmulator/GameboyEmulator/target/release/` folder using your file explorer of choice
+6. Drag a Game Boy ROM onto `gameboy_emulator.exe`
+7. Have fun!
 
 ## Boot ROM
 If you want to have a real Nintendo boot ROM, follow these steps:
