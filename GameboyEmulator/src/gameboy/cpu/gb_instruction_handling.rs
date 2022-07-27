@@ -12,6 +12,7 @@ impl GameBoy {
             //self.print_reg_state();
             self.run_ppu_cycle();
             self.run_ppu_cycle();
+            self.run_apu_cycle();
 
             // Break on pokemon Place String while the tempo is the same as the intro music (this is hella scuffed lmao)
             if self.pc == 0x3C58 && self.wram[0x00E9] == 0x98 {

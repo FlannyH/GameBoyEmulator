@@ -6,6 +6,7 @@ use mini_gl_fb::{
     config,
     glutin::{dpi::LogicalSize, event_loop::EventLoop},
 };
+
 extern crate mini_gl_fb;
 
 const DEBUG_WIDTH: usize = 1280;
@@ -60,7 +61,7 @@ fn main() {
     // Main loop
     window.glutin_handle_basic_input(&mut event_loop, |window, basic_input| {
         // Handle delta time
-        if now.elapsed().as_secs_f32() < 0.0166666f32 {
+        if now.elapsed().as_secs_f32() < 69905 as f32 / (1 << 22) as f32 {
             return true;
         }
         now = Instant::now();

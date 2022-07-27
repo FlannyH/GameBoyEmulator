@@ -3,15 +3,18 @@ use std::{env, fs};
 
 use crate::DEBUG_WIDTH;
 use rand::Rng;
+use rodio::OutputStream;
 
 use super::super::GameBoy;
 
 impl GameBoy {
     pub(in crate) fn new() -> GameBoy {
         // Create the Game Boy object
+        let (stream, stream_device) = OutputStream::try_default().unwrap();
         let mut new_game_boy = GameBoy {
             bios: [0xFF; 0x100],
             rom: Vec::new(),
+            eram: Vec::new(),
             vram: [0xFF; 0x2000],
             wram: [0xFF; 0x2000],
             oam: [0xFF; 0xA0],
@@ -30,7 +33,35 @@ impl GameBoy {
             ppu_tilemap_x: 0,
             ppu_tilemap_y: 0,
             ppu_pixels_to_discard: 0,
+            ppu_sprite_buffer: Vec::new(),
             framebuffer: vec![0; 160 * 144],
+            apu_stream: stream,
+            apu_stream_handle: stream_device,
+            apu_buffer: [[0; 32768]; 2],
+            apu_buffer_to_use: 0,
+            apu_buffer_write_index: 0,
+            apu_buffer_read_index: 0,
+            apu_sound_output: [0, 0, 0, 0],
+            apu_pulse1_freq_counter: 0,
+            apu_pulse1_env_counter: 0,
+            apu_pulse1_duty_step: 0,
+            apu_pulse1_length_timer: 0,
+            apu_pulse1_enabled: false,
+            apu_pulse1_curr_volume: 0,
+            apu_pulse2_freq_counter: 0,
+            apu_pulse2_env_counter: 0,
+            apu_pulse2_duty_step: 0,
+            apu_pulse2_length_timer: 0,
+            apu_pulse2_enabled: false,
+            apu_pulse2_curr_volume: 0,
+            apu_noise_freq_counter: 0,
+            apu_noise_env_counter: 0,
+            apu_noise_duty_step: 0,
+            apu_noise_length_timer: 0,
+            apu_noise_enabled: false,
+            apu_noise_curr_volume: 0,
+            apu_clock_timer: 0,
+            apu_clock: 0,
             reg_a: 0,
             reg_f: 0,
             reg_b: 0,
@@ -45,23 +76,29 @@ impl GameBoy {
             last_opcode_cycles: 0,
             new_instruction_tick: false,
             rom_chip_enabled: true,
+            eram_chip_enabled: false,
             curr_rom_bank: 1,
+            curr_eram_bank: 0,
             cpu_cycle_counter: 0,
             is_halted: false,
-            debug_enabled: false,
-            debug_bios: false,
-            debug_require_input: false,
             timer_div: 0,
             timer_overflow: false,
-            ppu_sprite_buffer: Vec::new(),
             oam_dma_counter: 0,
             oam_dma_source: 0,
             joypad_state: 0,
-            eram: Vec::new(),
-            eram_chip_enabled: false,
-            curr_eram_bank: 0,
             window_is_rendering: false,
             save_path: "".to_string(),
+            debug_enabled: false,
+            debug_bios: false,
+            debug_require_input: false,
+            apu_pulse1_sweep_timer: 0,
+            apu_pulse1_sweep_shadow_freq: 0,
+            apu_pulse1_sweep_enable: false,
+            apu_wave_freq_counter: 0,
+            apu_wave_env_counter: 0,
+            apu_wave_duty_step: 0,
+            apu_wave_length_timer: 0,
+            apu_wave_enabled: false,
         };
 
         // Init RNG

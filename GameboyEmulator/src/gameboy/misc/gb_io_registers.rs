@@ -25,6 +25,59 @@ impl GameBoy {
         match address {
             0xFF00 => self.io[0x00] = (value & 0b00110000) | (self.io[0x00] & 0b11001111),
             0xFF04 => self.timer_div = 0x0000,
+            0xFF11 => {
+                self.io[0x11] = value;
+                self.apu_pulse1_length_timer = 64 - value & 0b00111111;
+            }
+            0xFF16 => {
+                self.io[0x16] = value;
+                self.apu_pulse2_length_timer = 64 - value & 0b00111111;
+            }
+            0xFF14 => {
+                self.io[0x14] = value;
+                // If channel enable flag is set
+                if value & 0x80 > 0 {
+                    self.apu_pulse1_enabled = true;
+                    self.apu_pulse1_freq_counter = 0;
+                    self.apu_pulse1_env_counter = 0;
+                    self.apu_pulse1_curr_volume = self.io[0x12] >> 4;
+                    self.apu_pulse1_sweep_shadow_freq =
+                        (2048 - (self.io[0x13] as u16 | ((self.io[0x14] as u16) << 8)) % 2048) * 2;
+                    self.apu_pulse1_sweep_timer = 0;
+                    self.apu_pulse1_sweep_enable = self.io[0x10] & 0b01110111 != 0;
+                }
+            }
+            0xFF19 => {
+                self.io[0x19] = value;
+                // If channel enable flag is set
+                if value & 0x80 > 0 {
+                    self.apu_pulse2_enabled = true;
+                    self.apu_pulse2_freq_counter = 0;
+                    self.apu_pulse2_env_counter = 0;
+                    self.apu_pulse2_curr_volume = self.io[0x12] >> 4;
+                }
+            }
+            0xFF1E => {
+                self.io[0x1E] = value;
+                // If channel enable flag is set
+                if value & 0x80 > 0 {
+                    self.apu_wave_enabled = true;
+                    self.apu_wave_freq_counter = 0;
+                    self.apu_wave_env_counter = 0;
+                    self.apu_wave_duty_step = 0;
+                }
+            }
+            0xFF23 => {
+                self.io[0x23] = value;
+                // If channel enable flag is set
+                if value & 0x80 > 0 {
+                    self.apu_noise_enabled = true;
+                    self.apu_noise_freq_counter = 0;
+                    self.apu_noise_env_counter = 0;
+                    self.apu_noise_curr_volume = self.io[0x12] >> 4;
+                    self.apu_noise_duty_step = 0b0111_1111_1111_1111;
+                }
+            }
             0xFF46 => {
                 self.oam_dma_counter = 160;
                 self.oam_dma_source = (value as u16) << 8;

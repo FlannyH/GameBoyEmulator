@@ -2,6 +2,7 @@
 
 use std::collections::VecDeque;
 
+mod apu;
 mod cpu;
 mod misc;
 mod ppu;
@@ -25,6 +26,8 @@ struct OamEntry {
     tile: u8,
     attr: u8,
 }
+
+struct AudioSource {}
 
 pub struct GameBoy {
     // Memory Map
@@ -55,6 +58,47 @@ pub struct GameBoy {
     ppu_pixels_to_discard: u8,
     ppu_sprite_buffer: Vec<OamEntry>,
     framebuffer: Vec<u32>,
+
+    // APU
+    apu_stream: rodio::OutputStream,
+    apu_stream_handle: rodio::OutputStreamHandle,
+    apu_buffer: [[u16; 32768]; 2],
+    apu_buffer_to_use: usize,
+    apu_buffer_write_index: usize,
+    apu_buffer_read_index: usize,
+    apu_sound_output: [u8; 4],
+    apu_pulse1_freq_counter: u16,
+    apu_pulse1_env_counter: u8,
+    apu_pulse1_duty_step: usize,
+    apu_pulse1_length_timer: u8,
+    apu_pulse1_enabled: bool,
+    apu_pulse1_curr_volume: u8,
+
+    apu_pulse2_freq_counter: u16,
+    apu_pulse2_env_counter: u8,
+    apu_pulse2_duty_step: usize,
+    apu_pulse2_length_timer: u8,
+    apu_pulse2_enabled: bool,
+    apu_pulse2_curr_volume: u8,
+
+    apu_wave_freq_counter: u16,
+    apu_wave_env_counter: u8,
+    apu_wave_duty_step: usize,
+    apu_wave_length_timer: u8,
+    apu_wave_enabled: bool,
+
+    apu_noise_freq_counter: u16,
+    apu_noise_env_counter: u8,
+    apu_noise_duty_step: usize,
+    apu_noise_length_timer: u8,
+    apu_noise_enabled: bool,
+    apu_noise_curr_volume: u8,
+
+    apu_pulse1_sweep_timer: u8,
+    apu_pulse1_sweep_shadow_freq: u16,
+    apu_pulse1_sweep_enable: bool,
+    apu_clock_timer: u32,
+    apu_clock: u32,
 
     // Registers
     reg_a: u8,
