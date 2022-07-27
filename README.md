@@ -1,6 +1,13 @@
 # Flan's Game Boy Emulator
  Game Boy Emulator written in Rust, as a way to get hands-on with the Rust programming language, and creating a proper project using it, while learning some new stuff about the Game Boy as well.
  
+## Controls
+Arrow keys for D-pad
+Z key for B button
+X key for A button
+Right Shift key for Select
+Enter key for Start
+ 
 ## How to run
 ### From release
 1. Download the latest release from the `Releases` tab on this GitHub page
