@@ -1,5 +1,5 @@
 [package]
-name = "gameboy_emulator"
+name = "flan_gb_emulator"
 version = "0.1.0"
 edition = "2021"
 

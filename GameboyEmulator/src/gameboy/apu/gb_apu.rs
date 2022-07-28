@@ -1,4 +1,4 @@
-use rodio::{buffer::SamplesBuffer, Sink, Source};
+use rodio::buffer::SamplesBuffer;
 
 use crate::gameboy::GameBoy;
 

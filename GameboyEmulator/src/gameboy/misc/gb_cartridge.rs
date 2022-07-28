@@ -6,7 +6,10 @@ impl GameBoy {
     pub(in crate) fn insert_cartridge(&mut self, path: &str) -> bool {
         // Try to read the ROM file
         self.rom = match std::fs::read(path) {
-            Ok(bytes) => bytes,
+            Ok(bytes) => {
+                println!("ROM file loaded succesfully!");
+                bytes
+            }
             Err(e) => {
                 println!("Unable to load ROM file \"{path}\", error message: {e}");
                 return false;
