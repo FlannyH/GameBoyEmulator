@@ -38,7 +38,8 @@ impl GameBoy {
         }
 
         if self.apu_buffer_write_index % (1 << 6) == 0 {
-            self.apu_buffer[self.apu_buffer_to_use][self.apu_buffer_write_index >> 6] = 0
+            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 0] = 0;
+            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 1] = 0;
         }
 
         self.handle_apu_channel_1();
@@ -47,10 +48,10 @@ impl GameBoy {
         self.handle_apu_channel_4();
 
         self.apu_buffer_write_index += 1;
-        if self.apu_buffer_write_index == 16384 << 6 {
+        if self.apu_buffer_write_index == 32768 << 6 {
             self.apu_buffer_write_index = 0;
             let apu_source: SamplesBuffer<u16> =
-                SamplesBuffer::new(1, 32768, self.apu_buffer[self.apu_buffer_to_use]);
+                SamplesBuffer::new(2, 32768, self.apu_buffer[self.apu_buffer_to_use]);
             match self
                 .apu_stream_handle
                 .play_raw(apu_source.convert_samples())
@@ -86,9 +87,12 @@ impl GameBoy {
         } else {
             self.apu_sound_output[0] = 0;
         }
-        // Add channel 1 to apu buffer
-        self.apu_buffer[self.apu_buffer_to_use][self.apu_buffer_write_index >> 6] +=
-            ((self.apu_sound_output[0] as u16) * 128) / 64;
+        // Add channel 1 to apu buffer left
+        self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 0] +=
+            ((self.apu_sound_output[0] as u16) * (16 * ((self.io[0x24] >> 4) & 0x07) as u16)) / 64;
+        // Add channel 1 to apu buffer right
+        self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 1] +=
+            ((self.apu_sound_output[0] as u16) * (16 * ((self.io[0x24]) & 0x07) as u16)) / 64;
     }
 
     fn handle_apu_channel_2(&mut self) {
@@ -113,9 +117,12 @@ impl GameBoy {
         } else {
             self.apu_sound_output[1] = 0;
         }
-        // Add channel 2 to apu buffer
-        self.apu_buffer[self.apu_buffer_to_use][self.apu_buffer_write_index >> 6] +=
-            ((self.apu_sound_output[1] as u16) * 128) / 64;
+        // Add channel 2 to apu buffer left
+        self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 0] +=
+            ((self.apu_sound_output[1] as u16) * (16 * ((self.io[0x24] >> 4) & 0x07) as u16)) / 64;
+        // Add channel 2 to apu buffer right
+        self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 1] +=
+            ((self.apu_sound_output[1] as u16) * (16 * ((self.io[0x24]) & 0x07) as u16)) / 64;
     }
 
     fn handle_apu_channel_3(&mut self) {
@@ -149,9 +156,12 @@ impl GameBoy {
         } else {
             self.apu_sound_output[2] = 0;
         }
-        // Add channel 3 to apu buffer
-        self.apu_buffer[self.apu_buffer_to_use][self.apu_buffer_write_index >> 6] +=
-            ((self.apu_sound_output[2] as u16) * 128) / 64;
+        // Add channel 3 to apu buffer left
+        self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 0] +=
+            ((self.apu_sound_output[2] as u16) * (16 * ((self.io[0x24] >> 4) & 0x07) as u16)) / 64;
+        // Add channel 3 to apu buffer right
+        self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 1] +=
+            ((self.apu_sound_output[2] as u16) * (16 * ((self.io[0x24]) & 0x07) as u16)) / 64;
     }
 
     fn handle_apu_channel_4(&mut self) {
@@ -185,9 +195,12 @@ impl GameBoy {
         } else {
             self.apu_sound_output[3] = 0;
         }
-        // Add channel 4 to apu buffer
-        self.apu_buffer[self.apu_buffer_to_use][self.apu_buffer_write_index >> 6] +=
-            ((self.apu_sound_output[3] as u16) * 128) / 64;
+        // Add channel 4 to apu buffer left
+        self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 0] +=
+            ((self.apu_sound_output[3] as u16) * (16 * ((self.io[0x24] >> 4) & 0x07) as u16)) / 64;
+        // Add channel 4 to apu buffer right
+        self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 1] +=
+            ((self.apu_sound_output[3] as u16) * (16 * ((self.io[0x24]) & 0x07) as u16)) / 64;
     }
 
     fn handle512_channel_1(&mut self) {

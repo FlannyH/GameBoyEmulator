@@ -62,7 +62,7 @@ pub struct GameBoy {
     // APU
     apu_stream: rodio::OutputStream,
     apu_stream_handle: rodio::OutputStreamHandle,
-    apu_buffer: [[u16; 32768]; 2],
+    apu_buffer: [[u16; 65536]; 2],
     apu_buffer_to_use: usize,
     apu_buffer_write_index: usize,
     apu_buffer_read_index: usize,

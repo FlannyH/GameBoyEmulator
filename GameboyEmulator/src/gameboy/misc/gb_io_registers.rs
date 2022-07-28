@@ -123,9 +123,10 @@ impl GameBoy {
                 let mut return_value = self.io[0x00] & 0xF0;
                 if return_value & (1 << 4) == 0 {
                     return_value |= self.joypad_state >> 4;
-                }
-                if return_value & (1 << 5) == 0 {
+                } else if return_value & (1 << 5) == 0 {
                     return_value |= self.joypad_state & 0x0F;
+                } else {
+                    return_value |= 0x0F;
                 }
                 return_value
             } // TODO: actually implement input
