@@ -1,4 +1,4 @@
-use rodio::{buffer::SamplesBuffer, Source};
+use rodio::{buffer::SamplesBuffer, Sink, Source};
 
 use crate::gameboy::GameBoy;
 
@@ -48,19 +48,21 @@ impl GameBoy {
         self.handle_apu_channel_4();
 
         self.apu_buffer_write_index += 1;
-        if self.apu_buffer_write_index == 32768 << 6 {
+        if self.apu_buffer_write_index == 256 << 6 {
             self.apu_buffer_write_index = 0;
+
             let apu_source: SamplesBuffer<u16> =
                 SamplesBuffer::new(2, 32768, self.apu_buffer[self.apu_buffer_to_use]);
-            match self
-                .apu_stream_handle
-                .play_raw(apu_source.convert_samples())
-            {
-                Ok(_) => (),
-                Err(e) => {
-                    println!("Audio error: {}", e);
-                }
-            }
+            //match self
+            //    .apu_stream_handle
+            //    .play_raw(apu_source.convert_samples())
+            //{
+            //    Ok(_) => (),
+            //    Err(e) => {
+            //        println!("Audio error: {}", e);
+            //    }
+            //}
+            self.apu_sink.append(apu_source);
             self.apu_buffer_to_use ^= 1;
         }
     }

@@ -3,7 +3,7 @@ use std::{env, fs};
 
 use crate::DEBUG_WIDTH;
 use rand::Rng;
-use rodio::OutputStream;
+use rodio::{OutputStream, Sink};
 
 use super::super::GameBoy;
 
@@ -36,8 +36,8 @@ impl GameBoy {
             ppu_sprite_buffer: Vec::new(),
             framebuffer: vec![0; 160 * 144],
             apu_stream: stream,
-            apu_stream_handle: stream_device,
-            apu_buffer: [[0; 65536]; 2],
+            //apu_stream_handle: stream_device,
+            apu_buffer: [[0; 512]; 2],
             apu_buffer_to_use: 0,
             apu_buffer_write_index: 0,
             apu_buffer_read_index: 0,
@@ -99,6 +99,7 @@ impl GameBoy {
             apu_wave_duty_step: 0,
             apu_wave_length_timer: 0,
             apu_wave_enabled: false,
+            apu_sink: Sink::try_new(&stream_device).unwrap(),
         };
 
         // Init RNG

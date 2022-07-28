@@ -64,6 +64,7 @@ fn main() {
         if now.elapsed().as_secs_f32() < 69905 as f32 / (1 << 22) as f32 {
             return true;
         }
+
         now = Instant::now();
 
         // Get input

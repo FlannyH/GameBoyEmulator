@@ -2,6 +2,8 @@
 
 use std::collections::VecDeque;
 
+use rodio::Sink;
+
 mod apu;
 mod cpu;
 mod misc;
@@ -61,11 +63,12 @@ pub struct GameBoy {
 
     // APU
     apu_stream: rodio::OutputStream,
-    apu_stream_handle: rodio::OutputStreamHandle,
-    apu_buffer: [[u16; 65536]; 2],
+    //apu_stream_handle: rodio::OutputStreamHandle,
+    apu_buffer: [[u16; 512]; 2],
     apu_buffer_to_use: usize,
     apu_buffer_write_index: usize,
     apu_buffer_read_index: usize,
+    pub apu_sink: Sink,
     apu_sound_output: [u8; 4],
     apu_pulse1_freq_counter: u16,
     apu_pulse1_env_counter: u8,
