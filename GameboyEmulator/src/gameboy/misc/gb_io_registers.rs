@@ -5,7 +5,7 @@ impl GameBoy {
         let initial_io_state = [
             0xCF, 0x00, 0x7E, 0xFF, 0x00, 0x00, 0x00, 0xF8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
             0xFF, 0xE1, 0x80, 0x3F, 0x00, 0xFF, 0xBF, 0xFF, 0x3F, 0x00, 0xFF, 0xBF, 0x7F, 0xFF,
-            0x9F, 0xFF, 0xBF, 0xFF, 0xFF, 0x00, 0x00, 0xBF, 0x00, 0x00, 0x70, 0xFF, 0xFF, 0xFF,
+            0x9F, 0xFF, 0xBF, 0xFF, 0xFF, 0x00, 0x00, 0xBF, 0x00, 0xFF, 0x80, 0xFF, 0xFF, 0xFF,
             0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x50, 0xBD, 0x02, 0xF9, 0x29, 0xF3, 0x48, 0x6E,
             0x03, 0xB2, 0xDC, 0x37, 0x16, 0xF6, 0x9D, 0x9F, 0x00, 0x84, 0x00, 0x00, 0x00, 0x00,
             0xFF, 0xFC, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -33,6 +33,34 @@ impl GameBoy {
                 self.io[0x16] = value;
                 self.apu_pulse2_length_timer = 64 - value & 0b00111111;
             }
+            0xFF1B => {
+                self.io[0x1B] = value;
+                self.apu_wave_length_timer = 255 - value;
+            }
+            0xFF20 => {
+                self.io[0x20] = value;
+                self.apu_noise_length_timer = 64 - value & 0b00111111;
+            }
+            // this is just to make zombie mode for my own music engine lmao
+            0xFF12 => {
+                self.io[0x12] = value;
+                if self.apu_pulse1_enabled && value & 0x0F == 0x08 {
+                    self.apu_pulse1_curr_volume = (self.apu_pulse1_curr_volume + 1) & 0x0F;
+                }
+            }
+            0xFF17 => {
+                self.io[0x17] = value;
+                if self.apu_pulse2_enabled && value & 0x0F == 0x08 {
+                    self.apu_pulse2_curr_volume = (self.apu_pulse2_curr_volume + 1) & 0x0F;
+                }
+            }
+            0xFF21 => {
+                self.io[0x21] = value;
+                if self.apu_noise_enabled && value & 0x0F == 0x08 {
+                    self.apu_noise_curr_volume = (self.apu_noise_curr_volume + 1) & 0x0F;
+                }
+            }
+
             0xFF14 => {
                 self.io[0x14] = value;
                 // If channel enable flag is set
@@ -45,6 +73,7 @@ impl GameBoy {
                         (2048 - (self.io[0x13] as u16 | ((self.io[0x14] as u16) << 8)) % 2048) * 2;
                     self.apu_pulse1_sweep_timer = 0;
                     self.apu_pulse1_sweep_enable = self.io[0x10] & 0b01110111 != 0;
+                    self.handle_sweep();
                 }
             }
             0xFF19 => {
@@ -54,7 +83,7 @@ impl GameBoy {
                     self.apu_pulse2_enabled = true;
                     self.apu_pulse2_freq_counter = 0;
                     self.apu_pulse2_env_counter = 0;
-                    self.apu_pulse2_curr_volume = self.io[0x12] >> 4;
+                    self.apu_pulse2_curr_volume = self.io[0x17] >> 4;
                 }
             }
             0xFF1E => {
@@ -74,7 +103,7 @@ impl GameBoy {
                     self.apu_noise_enabled = true;
                     self.apu_noise_freq_counter = 0;
                     self.apu_noise_env_counter = 0;
-                    self.apu_noise_curr_volume = self.io[0x12] >> 4;
+                    self.apu_noise_curr_volume = self.io[0x21] >> 4;
                     self.apu_noise_duty_step = 0b0111_1111_1111_1111;
                 }
             }

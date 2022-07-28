@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use super::super::GameBoy;
 
 impl GameBoy {
@@ -31,7 +33,12 @@ impl GameBoy {
             self.eram = match std::fs::read(self.save_path.as_str()) {
                 Ok(bytes) => bytes,
                 Err(_e) => {
-                    vec![0xFF; eram_size]
+                    let mut result = vec![0xFF; eram_size];
+                    for x in &mut result {
+                        let mut rng = rand::thread_rng();
+                        *x = rng.gen_range(0..=255);
+                    }
+                    result
                 }
             };
         }

@@ -70,7 +70,7 @@ impl GameBoy {
     pub(super) fn handle_timer(&mut self) {
         // Increment internal counter
         let timer_div_prev = self.timer_div;
-        self.timer_div = self.timer_div.wrapping_add(4);
+        self.timer_div = self.timer_div.wrapping_add(2);
 
         // DIV register
         self.io[0x04] = (self.timer_div >> 8) as u8;

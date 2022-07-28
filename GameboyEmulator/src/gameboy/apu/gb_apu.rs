@@ -66,11 +66,12 @@ impl GameBoy {
 
     fn handle_apu_channel_1(&mut self) {
         if self.io[0x25] & 0b0001_0001 == 0 {
+            self.apu_sound_output[0] = 0;
             return;
         }
 
         // Handle frequency of channel 1
-        let freq = 2048 - (self.io[0x13] as u16 | ((self.io[0x14] as u16) << 8)) % 2048;
+        let freq = 2047 - (self.io[0x13] as u16 | ((self.io[0x14] as u16) << 8)) % 2048;
         let duty = (self.io[0x11] >> 6) as usize;
         if self.apu_pulse1_freq_counter < freq * 2 {
             self.apu_pulse1_freq_counter += 1;
@@ -92,10 +93,11 @@ impl GameBoy {
 
     fn handle_apu_channel_2(&mut self) {
         if self.io[0x25] & 0b0010_0010 == 0 {
+            self.apu_sound_output[1] = 0;
             return;
         }
         // Handle frequency of channel 2
-        let freq = 2048 - (self.io[0x13 + 5] as u16 | ((self.io[0x14 + 5] as u16) << 8)) % 2048;
+        let freq = 2047 - (self.io[0x13 + 5] as u16 | ((self.io[0x14 + 5] as u16) << 8)) % 2048;
         let duty = (self.io[0x11 + 5] >> 6) as usize;
 
         if self.apu_pulse2_freq_counter < freq * 2 {
@@ -118,15 +120,17 @@ impl GameBoy {
 
     fn handle_apu_channel_3(&mut self) {
         if self.io[0x25] & 0b0100_0100 == 0 {
+            self.apu_sound_output[2] = 0;
             return;
         }
 
         if self.io[0x1A] == 0 {
+            self.apu_sound_output[2] = 0;
             return;
         }
 
         // Handle frequency of channel 3
-        let freq = 2048 - (self.io[0x13 + 10] as u16 | ((self.io[0x14 + 10] as u16) << 8)) % 2048;
+        let freq = 2047 - (self.io[0x1D] as u16 | ((self.io[0x1E] as u16) << 8)) % 2048;
 
         if self.apu_wave_freq_counter < freq {
             self.apu_wave_freq_counter += 1;
@@ -141,7 +145,7 @@ impl GameBoy {
                 curr_sample_byte >>= 4;
             }
             self.apu_sound_output[2] =
-                (curr_sample_byte & 0x0F) * [0, 8, 4, 2][(self.io[0x1C] as usize) >> 5];
+                (curr_sample_byte & 0x0F) * [0, 8, 4, 2][(self.io[0x1C] as usize) >> 5 & 0b11];
         } else {
             self.apu_sound_output[2] = 0;
         }
@@ -152,6 +156,7 @@ impl GameBoy {
 
     fn handle_apu_channel_4(&mut self) {
         if self.io[0x25] & 0b1000_1000 == 0 {
+            self.apu_sound_output[3] = 0;
             return;
         }
         // Handle frequency of channel 4
@@ -186,7 +191,6 @@ impl GameBoy {
     }
 
     fn handle512_channel_1(&mut self) {
-        let freq = 2048 - (self.io[0x13] as u16 | ((self.io[0x14] as u16) << 8)) % 2048;
         // Get flags
         let length_enable_flag1: bool = self.io[0x14] & (1 << 6) > 0;
         // Handle length
@@ -200,7 +204,7 @@ impl GameBoy {
         }
         // Handle volume
         {
-            let vol_env_reg = self.io[0x17];
+            let vol_env_reg = self.io[0x12];
             if self.apu_clock % 8 == 7 {
                 self.apu_pulse1_env_counter += 1;
                 if self.apu_pulse1_env_counter == vol_env_reg & 0b00000111
@@ -218,7 +222,7 @@ impl GameBoy {
             }
         };
         // Handle sweep
-        self.handle_sweep(freq);
+        self.handle_sweep();
     }
 
     fn handle512_channel_2(&mut self) {
@@ -301,10 +305,22 @@ impl GameBoy {
         };
     }
 
-    fn handle_sweep(&mut self, freq: u16) {
+    pub(in super::super) fn handle_sweep(&mut self) {
+        let freq = (self.io[0x13] as u16) | (((self.io[0x14] & 0b111) as u16) << 8);
         if [2, 6].contains(&(self.apu_clock % 8)) {
+            // Tick timer
+            if (self.io[0x10] & 0b01110000) >> 4 == 0 {
+                return;
+            }
+
+            self.apu_pulse1_sweep_timer += 1;
+            if self.apu_pulse1_sweep_timer < (self.io[0x10] & 0b01110000) >> 4 {
+                return;
+            }
+
             // If shift amount isn't 0 and enabled flag is set
             if self.io[0x10] & 0b00000111 != 0 && self.apu_pulse1_sweep_enable {
+                self.apu_pulse1_sweep_timer = 0;
                 // Shift
                 let shift_amount = self.io[0x10] & 0b00000111;
                 let mut new_frequency = freq >> shift_amount;
