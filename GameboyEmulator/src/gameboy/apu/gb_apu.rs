@@ -38,7 +38,7 @@ impl GameBoy {
         }
 
         if self.apu_buffer_write_index % (1 << 6) == 0 {
-            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 0] = 0;
+            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2] = 0;
             self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 1] = 0;
         }
 
@@ -91,7 +91,7 @@ impl GameBoy {
         }
         // Add channel 1 to apu buffer left
         if self.io[0x25] & 0b0001_0000 > 0 {
-            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 0] +=
+            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2] +=
                 ((self.apu_sound_output[0] as u16) * (16 * ((self.io[0x24] >> 4) & 0x07) as u16))
                     / 64;
         }
@@ -126,7 +126,7 @@ impl GameBoy {
         }
         // Add channel 2 to apu buffer left
         if self.io[0x25] & 0b0010_0000 > 0 {
-            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 0] +=
+            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2] +=
                 ((self.apu_sound_output[1] as u16) * (16 * ((self.io[0x24] >> 4) & 0x07) as u16))
                     / 64;
         }
@@ -163,14 +163,14 @@ impl GameBoy {
             if self.apu_wave_duty_step % 2 == 0 {
                 curr_sample_byte >>= 4;
             }
-            self.apu_sound_output[2] =
-                (curr_sample_byte & 0x0F) * [0, 8, 4, 2][(self.io[0x1C] as usize) >> 5 & 0b11];
+            self.apu_sound_output[2] = (0x0F - (curr_sample_byte & 0x0F))
+                * [0, 8, 4, 2][(self.io[0x1C] as usize) >> 5 & 0b11];
         } else {
             self.apu_sound_output[2] = 0;
         }
         // Add channel 3 to apu buffer left
         if self.io[0x25] & 0b0100_0000 > 0 {
-            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 0] +=
+            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2] +=
                 ((self.apu_sound_output[2] as u16) * (16 * ((self.io[0x24] >> 4) & 0x07) as u16))
                     / 64;
         }
@@ -214,7 +214,7 @@ impl GameBoy {
         }
         // Add channel 4 to apu buffer left
         if self.io[0x25] & 0b1000_0000 > 0 {
-            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 0] +=
+            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2] +=
                 ((self.apu_sound_output[3] as u16) * (16 * ((self.io[0x24] >> 4) & 0x07) as u16))
                     / 64;
         }
@@ -229,19 +229,20 @@ impl GameBoy {
         // Get flags
         let length_enable_flag1: bool = self.io[0x14] & (1 << 6) > 0;
         // Handle length
-        if [0, 2, 4, 6].contains(&(self.apu_clock % 8)) {
-            if length_enable_flag1 && self.apu_pulse1_length_timer > 0 {
-                self.apu_pulse1_length_timer -= 1;
-                if self.apu_pulse1_length_timer == 0 {
-                    self.apu_pulse1_enabled = false;
-                }
+        if [0, 2, 4, 6].contains(&(self.apu_clock % 8))
+            && length_enable_flag1
+            && self.apu_pulse1_length_timer > 0
+        {
+            self.apu_pulse1_length_timer -= 1;
+            if self.apu_pulse1_length_timer == 0 {
+                self.apu_pulse1_enabled = false;
             }
         }
         // Handle volume
         {
             let vol_env_reg = self.io[0x12];
             if self.apu_clock % 8 == 7 {
-                self.apu_pulse1_env_counter += 1;
+                self.apu_pulse1_env_counter = self.apu_pulse1_env_counter.overflowing_add(1).0;
                 if self.apu_pulse1_env_counter == vol_env_reg & 0b00000111
                     && vol_env_reg & 0b00000111 != 0
                 {
@@ -264,12 +265,13 @@ impl GameBoy {
         // Get flags
         let length_enable_flag2: bool = self.io[0x19] & (1 << 6) > 0;
         // Handle length
-        if [0, 2, 4, 6].contains(&(self.apu_clock % 8)) {
-            if length_enable_flag2 && self.apu_pulse2_length_timer > 0 {
-                self.apu_pulse2_length_timer -= 1;
-                if self.apu_pulse2_length_timer == 0 {
-                    self.apu_pulse2_enabled = false;
-                }
+        if [0, 2, 4, 6].contains(&(self.apu_clock % 8))
+            && length_enable_flag2
+            && self.apu_pulse2_length_timer > 0
+        {
+            self.apu_pulse2_length_timer -= 1;
+            if self.apu_pulse2_length_timer == 0 {
+                self.apu_pulse2_enabled = false;
             }
         }
         // Handle volume
@@ -297,12 +299,13 @@ impl GameBoy {
         // Get flags
         let length_enable_flag3: bool = self.io[0x14] & (1 << 6) > 0;
         // Handle length
-        if [0, 2, 4, 6].contains(&(self.apu_clock % 8)) {
-            if length_enable_flag3 && self.apu_wave_length_timer > 0 {
-                self.apu_wave_length_timer -= 1;
-                if self.apu_wave_length_timer == 0 {
-                    self.apu_wave_enabled = false;
-                }
+        if [0, 2, 4, 6].contains(&(self.apu_clock % 8))
+            && length_enable_flag3
+            && self.apu_wave_length_timer > 0
+        {
+            self.apu_wave_length_timer -= 1;
+            if self.apu_wave_length_timer == 0 {
+                self.apu_wave_enabled = false;
             }
         }
     }
@@ -311,12 +314,13 @@ impl GameBoy {
         // Get flags
         let length_enable_flag4: bool = self.io[0x23] & (1 << 6) > 0;
         // Handle length
-        if [0, 2, 4, 6].contains(&(self.apu_clock % 8)) {
-            if length_enable_flag4 && self.apu_noise_length_timer > 0 {
-                self.apu_noise_length_timer -= 1;
-                if self.apu_noise_length_timer == 0 {
-                    self.apu_noise_enabled = false;
-                }
+        if [0, 2, 4, 6].contains(&(self.apu_clock % 8))
+            && length_enable_flag4
+            && self.apu_noise_length_timer > 0
+        {
+            self.apu_noise_length_timer -= 1;
+            if self.apu_noise_length_timer == 0 {
+                self.apu_noise_enabled = false;
             }
         }
         // Handle volume

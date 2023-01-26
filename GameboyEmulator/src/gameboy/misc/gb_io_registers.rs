@@ -15,9 +15,7 @@ impl GameBoy {
             0xFF, 0xFF,
         ];
 
-        for x in 0..128 {
-            self.io[x] = initial_io_state[x];
-        }
+        self.io[..128].copy_from_slice(&initial_io_state[..128]);
     }
 
     pub(in super::super) fn handle_io_register_write(&mut self, address: u16, value: u8) -> bool {
@@ -27,11 +25,11 @@ impl GameBoy {
             0xFF04 => self.timer_div = 0x0000,
             0xFF11 => {
                 self.io[0x11] = value;
-                self.apu_pulse1_length_timer = 64 - value & 0b00111111;
+                self.apu_pulse1_length_timer = 64 - (value & 0b00111111);
             }
             0xFF16 => {
                 self.io[0x16] = value;
-                self.apu_pulse2_length_timer = 64 - value & 0b00111111;
+                self.apu_pulse2_length_timer = 64 - (value & 0b00111111);
             }
             0xFF1B => {
                 self.io[0x1B] = value;
@@ -39,7 +37,7 @@ impl GameBoy {
             }
             0xFF20 => {
                 self.io[0x20] = value;
-                self.apu_noise_length_timer = 64 - value & 0b00111111;
+                self.apu_noise_length_timer = 64 - (value & 0b00111111);
             }
             // this is just to make zombie mode for my own music engine lmao
             0xFF12 => {
@@ -114,11 +112,11 @@ impl GameBoy {
             0xFF50 => self.rom_chip_enabled = false,
             _ => self.io[(address & 0x7F) as usize] = value,
         }
-        return true;
+        true
     }
 
     pub(in super::super) fn handle_io_register_read(&self, address: u16) -> u8 {
-        let result = match address {
+        match address {
             0xFF00 => {
                 let mut return_value = self.io[0x00] & 0xF0;
                 if return_value & (1 << 4) == 0 {
@@ -131,7 +129,6 @@ impl GameBoy {
                 return_value
             } // TODO: actually implement input
             _ => self.io[(address & 0x7F) as usize],
-        };
-        return result;
+        }
     }
 }

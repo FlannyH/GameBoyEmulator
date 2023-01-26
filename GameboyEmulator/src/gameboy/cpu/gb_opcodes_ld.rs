@@ -96,7 +96,7 @@ impl GameBoy {
             // LD [a16], SP
             0x08 => {
                 let target_address = self.fetch_next_short_from_pc();
-                self.store_byte_to_memory(target_address + 0, (self.sp & 0xFF) as u8);
+                self.store_byte_to_memory(target_address, (self.sp & 0xFF) as u8);
                 self.store_byte_to_memory(target_address + 1, (self.sp >> 8) as u8);
             }
 
@@ -120,26 +120,24 @@ impl GameBoy {
 
             _ => return false,
         }
-        return true;
+        true
     }
 
     pub(in super::super) fn load_reg(&mut self, index: u8) -> u8 {
-        let a;
         match index & 0x07 {
-            0 => a = self.reg_b,
-            1 => a = self.reg_c,
-            2 => a = self.reg_d,
-            3 => a = self.reg_e,
-            4 => a = self.reg_h,
-            5 => a = self.reg_l,
+            0 => self.reg_b,
+            1 => self.reg_c,
+            2 => self.reg_d,
+            3 => self.reg_e,
+            4 => self.reg_h,
+            5 => self.reg_l,
             6 => {
                 let address = (self.reg_h as u16) << 8 | self.reg_l as u16;
-                a = self.fetch_byte_from_memory(address);
+                self.fetch_byte_from_memory(address)
             }
-            7 => a = self.reg_a,
+            7 => self.reg_a,
             _ => panic!(),
         }
-        return a;
     }
 
     pub(in super::super) fn store_reg(&mut self, index: u8, value: u8) {
@@ -160,30 +158,30 @@ impl GameBoy {
     }
 
     pub(in super::super) fn inc8(&mut self, value: u8) -> u8 {
-        self.reg_f &= FlagMask::CARRY as u8;
+        self.reg_f &= FlagMask::Carry as u8;
         let value_before = value;
         let value_after = value.wrapping_add(1);
         if value_before & 0xF0 != value_after & 0xF0 {
-            self.reg_f |= FlagMask::HALF as u8;
+            self.reg_f |= FlagMask::Half as u8;
         }
         if value_after == 0x00 {
-            self.reg_f |= FlagMask::ZERO as u8;
+            self.reg_f |= FlagMask::Zero as u8;
         }
-        return value_after;
+        value_after
     }
 
     pub(in super::super) fn dec8(&mut self, value: u8) -> u8 {
-        self.reg_f &= FlagMask::CARRY as u8;
-        self.reg_f |= FlagMask::NEG as u8;
+        self.reg_f &= FlagMask::Carry as u8;
+        self.reg_f |= FlagMask::Neg as u8;
         let value_before = value;
         let value_after = value.wrapping_sub(1);
         if value_before & 0xF0 != value_after & 0xF0 {
-            self.reg_f |= FlagMask::HALF as u8;
+            self.reg_f |= FlagMask::Half as u8;
         }
         if value_after == 0x00 {
-            self.reg_f |= FlagMask::ZERO as u8;
+            self.reg_f |= FlagMask::Zero as u8;
         }
-        return value_after;
+        value_after
     }
 }
 

@@ -27,6 +27,6 @@ impl GameBoy {
         self.sp += 1;
         popped_value |= (self.fetch_byte_from_memory(self.sp) as u16) << 8;
         self.sp += 1;
-        return popped_value;
+        popped_value
     }
 }

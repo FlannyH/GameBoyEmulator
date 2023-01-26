@@ -8,7 +8,7 @@ use rodio::{OutputStream, Sink};
 use super::super::GameBoy;
 
 impl GameBoy {
-    pub(in crate) fn new() -> GameBoy {
+    pub(crate) fn new() -> GameBoy {
         // Create the Game Boy object
         let (stream, stream_device) = OutputStream::try_default().unwrap();
         let mut new_game_boy = GameBoy {
@@ -137,9 +137,7 @@ impl GameBoy {
         };
 
         // Copy boot rom file to Game Boy
-        for i in 0..256 {
-            new_game_boy.bios[i] = bios_bytes[i];
-        }
+        new_game_boy.bios[..256].copy_from_slice(&bios_bytes[..256]);
 
         // Init IO registers
         new_game_boy.init_io_registers();
@@ -148,7 +146,7 @@ impl GameBoy {
         new_game_boy
     }
 
-    pub(in crate) fn print_reg_state(&self) {
+    pub(crate) fn print_reg_state(&self) {
         println!("AF: {:02X} {:02X}", self.reg_a, self.reg_f);
         println!("BC: {:02X} {:02X}", self.reg_b, self.reg_c);
         println!("DE: {:02X} {:02X}", self.reg_d, self.reg_e);
@@ -171,7 +169,7 @@ impl GameBoy {
         );
     }
 
-    pub(in crate) fn dump_memory(&mut self, file_path: &str, memory_start: u16, dump_length: u16) {
+    pub(crate) fn dump_memory(&mut self, file_path: &str, memory_start: u16, dump_length: u16) {
         // Get Vec<u8> of all the bytes in the range specified
         let mut bytes: Vec<u8> = Vec::new();
         bytes.reserve(dump_length as usize);
@@ -183,7 +181,7 @@ impl GameBoy {
         fs::write(file_path, bytes).unwrap();
     }
 
-    pub(in crate) fn render_memory(
+    pub(crate) fn render_memory(
         &mut self,
         buffer: &mut Vec<u32>,
         memory_start: usize,
@@ -207,8 +205,8 @@ impl GameBoy {
 
         let ram_base = memory_start;
         // Loop over each tile
-        for tile_y in 0..tile_h as usize {
-            for tile_x in 0..tile_w as usize {
+        for tile_y in 0..tile_h {
+            for tile_x in 0..tile_w {
                 // Loop over each pixel in a tile
                 for pixel_y in 0..8 {
                     // Calculate the tile address for the current pixel
@@ -218,7 +216,7 @@ impl GameBoy {
 
                     // Get the 2 bytes for the pixel row, where row_1 is the LSB and row_2 the MSB
                     // This means if only row_1's bit is set, the colour is dark grey
-                    let row_1 = self.fetch_byte_from_memory(tile_address + 0);
+                    let row_1 = self.fetch_byte_from_memory(tile_address);
                     let row_2 = self.fetch_byte_from_memory(tile_address + 1);
                     self.curr_cycles_to_wait -= 2;
 

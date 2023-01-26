@@ -10,10 +10,10 @@ mod misc;
 mod ppu;
 
 pub enum FlagMask {
-    ZERO = 0x80,
-    NEG = 0x40,
-    HALF = 0x20,
-    CARRY = 0x10,
+    Zero = 0x80,
+    Neg = 0x40,
+    Half = 0x20,
+    Carry = 0x10,
 }
 
 #[derive(Clone)]
@@ -163,7 +163,7 @@ impl GameBoy {
 
     pub(crate) fn render_palettes(
         &self,
-        buffer: &mut Vec<u32>,
+        buffer: &mut [u32],
         offset_x: usize,
         offset_y: usize,
         scale: usize,
@@ -172,19 +172,19 @@ impl GameBoy {
         // Get palettes from IO
         // i was really about to type `ldh a, [$ff47]` wow
         let bgp = [
-            self.io[0x47] >> 0 & 0x03,
+            self.io[0x47] & 0x03,
             self.io[0x47] >> 2 & 0x03,
             self.io[0x47] >> 4 & 0x03,
             self.io[0x47] >> 6 & 0x03,
         ];
         let obp0 = [
-            self.io[0x48] >> 0 & 0x03,
+            self.io[0x48] & 0x03,
             self.io[0x48] >> 2 & 0x03,
             self.io[0x48] >> 4 & 0x03,
             self.io[0x48] >> 6 & 0x03,
         ];
         let obp1 = [
-            self.io[0x49] >> 0 & 0x03,
+            self.io[0x49] & 0x03,
             self.io[0x49] >> 2 & 0x03,
             self.io[0x49] >> 4 & 0x03,
             self.io[0x49] >> 6 & 0x03,
@@ -192,11 +192,11 @@ impl GameBoy {
         let palettes = [bgp, obp0, obp1];
 
         // Draw the palettes
-        for y in 0..3 {
+        for (y, palette) in palettes.iter().enumerate() {
             for x in 0..4 {
                 draw_rectangle(
                     buffer,
-                    (((palettes[y][x] ^ 0b11) as u32) * (235 / 3)) * 0x00010101,
+                    (((palette[x] ^ 0b11) as u32) * (235 / 3)) * 0x00010101,
                     offset_x + (scale) * x,
                     offset_x + (scale) * (x + 1),
                     offset_y + (scale) * y,
@@ -216,7 +216,7 @@ impl GameBoy {
     }
 
     pub(crate) fn save_game_if_possible(&self) {
-        if self.eram.len() > 0 {
+        if !self.eram.is_empty() {
             std::fs::write(self.save_path.as_str(), self.eram.clone())
                 .expect("Couldn't write save file");
         }
@@ -224,7 +224,7 @@ impl GameBoy {
 }
 
 fn draw_rectangle(
-    buffer: &mut Vec<u32>,
+    buffer: &mut [u32],
     color: u32,
     x_1: usize,
     x_2: usize,
@@ -240,7 +240,7 @@ fn draw_rectangle(
 }
 
 fn draw_line_border(
-    buffer: &mut Vec<u32>,
+    buffer: &mut [u32],
     x_1: usize,
     x_2: usize,
     y_1: usize,

@@ -6,7 +6,7 @@ impl GameBoy {
     pub(in super::super) fn adc_8_8(&mut self, a: u8, b: u8) -> u8 {
         // Handle carry
         let mut carry = 0;
-        if self.reg_f & FlagMask::CARRY as u8 > 0x00 {
+        if self.reg_f & FlagMask::Carry as u8 > 0x00 {
             carry = 1;
         }
 
@@ -18,12 +18,12 @@ impl GameBoy {
 
         // Carry flag
         if a16 >= 0x100 {
-            self.reg_f |= FlagMask::CARRY as u8;
+            self.reg_f |= FlagMask::Carry as u8;
         }
 
         // Half flag
         if ((a & 0x0F) + (b & 0x0F) + (carry & 0x0F)) >= 0x10 {
-            self.reg_f |= FlagMask::HALF as u8;
+            self.reg_f |= FlagMask::Half as u8;
         }
 
         // Add the low and high bits together
@@ -31,34 +31,34 @@ impl GameBoy {
 
         // Handle zero flag
         if a == 0x00 {
-            self.reg_f |= FlagMask::ZERO as u8;
+            self.reg_f |= FlagMask::Zero as u8;
         }
-        return a;
+        a
     }
 
     // Subtract two 8 bit values and set the flags
     pub(in super::super) fn sbc_8_8(&mut self, a: u8, b: u8) -> u8 {
         // Handle carry
         let mut borrow = 0;
-        if self.reg_f & FlagMask::CARRY as u8 > 0x00 {
+        if self.reg_f & FlagMask::Carry as u8 > 0x00 {
             borrow = 1;
         }
 
         // Reset the flag register and set the negative flag
-        self.reg_f = 0x00 | FlagMask::NEG as u8;
+        self.reg_f = FlagMask::Neg as u8;
 
         //Do a 16 bit subtraction
         let a16 = (0x100 + (a as u16)) - ((b as u16) + (borrow as u16));
 
         // Carry flag
         if a16 < 0x100 {
-            self.reg_f |= FlagMask::CARRY as u8;
+            self.reg_f |= FlagMask::Carry as u8;
         }
 
         // Half flag
         //if ((0x10 + ((a as u16) & 0x0F)) - ((((b) as u16) + (borrow as u16)) & 0x0F)) < 0x10 {
         if 0x10 + (a & 0x0F) - (b & 0x0F) - (borrow & 0x0F) < 0x10 {
-            self.reg_f |= FlagMask::HALF as u8;
+            self.reg_f |= FlagMask::Half as u8;
         }
 
         // Add the low and high bits together
@@ -66,9 +66,9 @@ impl GameBoy {
 
         // Handle zero flag
         if a == 0x00 {
-            self.reg_f |= FlagMask::ZERO as u8;
+            self.reg_f |= FlagMask::Zero as u8;
         }
-        return a;
+        a
     }
 
     pub(in super::super) fn add_8_8(&mut self, a: u8, b: u8) -> u8 {
@@ -93,47 +93,45 @@ impl GameBoy {
         let mut a_h = a_h;
 
         // Correct the flags
-        self.reg_f &= FlagMask::HALF as u8 | FlagMask::CARRY as u8;
+        self.reg_f &= FlagMask::Half as u8 | FlagMask::Carry as u8;
 
         // Handle carry. This should not affect flags and inc or dec based on the sign of B
         if b >= 0x80 {
-            if self.reg_f & FlagMask::CARRY as u8 == 0x00 {
+            if self.reg_f & FlagMask::Carry as u8 == 0x00 {
                 a_h = a_h.wrapping_sub(1);
             }
-        } else {
-            if self.reg_f & FlagMask::CARRY as u8 > 0x00 {
-                a_h = a_h.wrapping_add(1);
-            }
+        } else if self.reg_f & FlagMask::Carry as u8 > 0x00 {
+            a_h = a_h.wrapping_add(1);
         }
-        return (a_h, a_l);
+        (a_h, a_l)
     }
 
     pub(in super::super) fn add_16_16(&mut self, a_h: u8, a_l: u8, b_h: u8, b_l: u8) -> (u8, u8) {
         // Save the Z flag since it should not change after this instruction
-        let temp_flag = self.reg_f & FlagMask::ZERO as u8;
+        let temp_flag = self.reg_f & FlagMask::Zero as u8;
 
         // Perform 16 bit addition
         let a_l = self.add_8_8(a_l, b_l);
         let a_h = self.adc_8_8(a_h, b_h);
 
         // Restore the Z flag
-        self.reg_f = self.reg_f & (!(FlagMask::ZERO as u8)) | temp_flag;
+        self.reg_f = self.reg_f & (!(FlagMask::Zero as u8)) | temp_flag;
 
-        return (a_h, a_l);
+        (a_h, a_l)
     }
 
     pub(in super::super) fn and_8_8(&mut self, a: u8, b: u8) -> u8 {
         // Set flag initial state
-        self.reg_f = FlagMask::HALF as u8;
+        self.reg_f = FlagMask::Half as u8;
 
         // Apply operation
         let a = a & b;
 
         // Handle zero flag
         if a == 0x00 {
-            self.reg_f |= FlagMask::ZERO as u8;
+            self.reg_f |= FlagMask::Zero as u8;
         }
-        return a;
+        a
     }
 
     pub(in super::super) fn xor_8_8(&mut self, a: u8, b: u8) -> u8 {
@@ -145,9 +143,9 @@ impl GameBoy {
 
         // Handle zero flag
         if a == 0x00 {
-            self.reg_f |= FlagMask::ZERO as u8;
+            self.reg_f |= FlagMask::Zero as u8;
         }
-        return a;
+        a
     }
 
     pub(in super::super) fn or_8_8(&mut self, a: u8, b: u8) -> u8 {
@@ -159,9 +157,9 @@ impl GameBoy {
 
         // Handle zero flag
         if a == 0x00 {
-            self.reg_f |= FlagMask::ZERO as u8;
+            self.reg_f |= FlagMask::Zero as u8;
         }
-        return a;
+        a
     }
 
     pub(in super::super) fn cp_8_8(&mut self, a: u8, b: u8) {

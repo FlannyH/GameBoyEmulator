@@ -5,7 +5,7 @@ use crate::gameboy::FlagMask;
 use super::super::GameBoy;
 
 impl GameBoy {
-    pub(in crate) fn run_frame(&mut self) {
+    pub(crate) fn run_frame(&mut self) {
         loop {
             let prev = self.ppu_ly;
             self.process_next_instruction();
@@ -33,21 +33,19 @@ impl GameBoy {
             if (self.io[0x40] & 0x80 == 0) && (self.timer_div < 3) {
                 break;
             }
-            if self.debug_enabled && (self.new_instruction_tick) {
-                if self.rom_chip_enabled == self.debug_bios {
-                    println!(
-                        "Opcode: ${:02X}, PC: ${:04X}, IF: %{:08b}, IE: %{:08b}",
-                        self.last_opcode, self.pc, self.io[0x0F], self.ie
-                    );
-                    //self.print_reg_state();
-                    if self.debug_require_input {
-                        let _ = _stdin.read(&mut [0u8]).unwrap();
-                        let _ = _stdin.read(&mut [0u8]).unwrap();
-                    }
+            if self.debug_enabled
+                && (self.new_instruction_tick)
+                && self.rom_chip_enabled == self.debug_bios
+            {
+                println!(
+                    "Opcode: ${:02X}, PC: ${:04X}, IF: %{:08b}, IE: %{:08b}",
+                    self.last_opcode, self.pc, self.io[0x0F], self.ie
+                );
+                //self.print_reg_state();
+                if self.debug_require_input {
+                    let _ = _stdin.read(&mut [0u8]).unwrap();
+                    let _ = _stdin.read(&mut [0u8]).unwrap();
                 }
-                //if self.rom_chip_enabled == self.debug_bios {
-                //    break;
-                //}
             }
         }
     }
@@ -113,22 +111,22 @@ impl GameBoy {
             0x00 => return true, // NOP - no operation
             0x07 => {
                 self.reg_a = self.rlc(self.reg_a);
-                self.reg_f &= FlagMask::CARRY as u8;
+                self.reg_f &= FlagMask::Carry as u8;
             }
             0x0F => {
                 self.reg_a = self.rrc(self.reg_a);
-                self.reg_f &= FlagMask::CARRY as u8;
+                self.reg_f &= FlagMask::Carry as u8;
             }
             0x10 => {
                 self.fetch_next_byte_from_pc();
             } // STOP
             0x17 => {
                 self.reg_a = self.rl(self.reg_a);
-                self.reg_f &= FlagMask::CARRY as u8;
+                self.reg_f &= FlagMask::Carry as u8;
             }
             0x1F => {
                 self.reg_a = self.rr(self.reg_a);
-                self.reg_f &= FlagMask::CARRY as u8;
+                self.reg_f &= FlagMask::Carry as u8;
             }
             0x76 => self.is_halted = true,
             0xCB => {
@@ -138,6 +136,6 @@ impl GameBoy {
             0xFB => self.ime = 1,
             _ => return false,
         }
-        return true;
+        true
     }
 }

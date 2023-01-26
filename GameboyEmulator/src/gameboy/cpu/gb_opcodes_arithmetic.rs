@@ -49,7 +49,7 @@ impl GameBoy {
         }
 
         // If we don't have a valid arithmetic opcode, we're done here, let another function try to parse this opcode
-        if found == false {
+        if !found {
             return false;
         }
 
@@ -68,7 +68,7 @@ impl GameBoy {
             7 => self.cp_8_8(self.reg_a, rh),
             _ => panic!(), // This should be impossible
         }
-        return true;
+        true
     }
 
     pub(in super::super) fn handle_incdec_instructions(&mut self, opcode: u8) -> bool {
@@ -151,46 +151,46 @@ impl GameBoy {
                 self.sp = ((s as u16) << 8) | (p as u16);
             }
             // scf, ccf, cpl
-            0x37 => self.reg_f = (self.reg_f & FlagMask::ZERO as u8) | (FlagMask::CARRY as u8),
+            0x37 => self.reg_f = (self.reg_f & FlagMask::Zero as u8) | (FlagMask::Carry as u8),
             0x3F => {
-                self.reg_f = (self.reg_f & (FlagMask::ZERO as u8 | FlagMask::CARRY as u8))
-                    ^ (FlagMask::CARRY as u8)
+                self.reg_f = (self.reg_f & (FlagMask::Zero as u8 | FlagMask::Carry as u8))
+                    ^ (FlagMask::Carry as u8)
             }
             0x2F => {
-                self.reg_f |= FlagMask::HALF as u8;
-                self.reg_f |= FlagMask::NEG as u8;
+                self.reg_f |= FlagMask::Half as u8;
+                self.reg_f |= FlagMask::Neg as u8;
                 self.reg_a = !self.reg_a;
             }
             // daa
             0x27 => {
                 let mut temp_a = self.reg_a as u16;
-                if (self.reg_f & (FlagMask::NEG as u8)) == 0 {
-                    if (self.reg_f & (FlagMask::CARRY as u8) > 0) || temp_a > 0x99 {
-                        self.reg_f |= FlagMask::CARRY as u8;
+                if (self.reg_f & (FlagMask::Neg as u8)) == 0 {
+                    if (self.reg_f & (FlagMask::Carry as u8) > 0) || temp_a > 0x99 {
+                        self.reg_f |= FlagMask::Carry as u8;
                         temp_a = temp_a.wrapping_add(0x60);
                     }
-                    if (self.reg_f & (FlagMask::HALF as u8) > 0) || (temp_a & 0x0F) > 0x09 {
+                    if (self.reg_f & (FlagMask::Half as u8) > 0) || (temp_a & 0x0F) > 0x09 {
                         temp_a = temp_a.wrapping_add(0x06);
                     }
                 } else {
-                    if (self.reg_f & (FlagMask::CARRY as u8)) > 0 {
+                    if (self.reg_f & (FlagMask::Carry as u8)) > 0 {
                         temp_a = temp_a.wrapping_sub(0x60);
                     }
-                    if (self.reg_f & (FlagMask::HALF as u8)) > 0 {
+                    if (self.reg_f & (FlagMask::Half as u8)) > 0 {
                         temp_a = temp_a.wrapping_sub(0x06);
                     }
                 }
 
-                self.reg_f &= !(FlagMask::HALF as u8);
+                self.reg_f &= !(FlagMask::Half as u8);
                 self.reg_a = (temp_a & 0xFF) as u8;
                 if self.reg_a == 0 {
-                    self.reg_f |= FlagMask::ZERO as u8;
+                    self.reg_f |= FlagMask::Zero as u8;
                 } else {
-                    self.reg_f &= !(FlagMask::ZERO as u8);
+                    self.reg_f &= !(FlagMask::Zero as u8);
                 }
             }
             _ => return false,
         }
-        return true;
+        true
     }
 }

@@ -11,7 +11,7 @@ extern crate mini_gl_fb;
 
 const DEBUG_WIDTH: usize = 1280;
 const DEBUG_HEIGHT: usize = 720;
-const DEBUG_VIEW_ENABLE: bool = false;
+const DEBUG_VIEW_ENABLE: bool = true;
 const WIDTH: usize = 642;
 const HEIGHT: usize = 578;
 
@@ -61,14 +61,14 @@ fn main() {
     // Main loop
     window.glutin_handle_basic_input(&mut event_loop, |window, basic_input| {
         // Handle delta time
-        if now.elapsed().as_secs_f32() < 69905 as f32 / (1 << 22) as f32 {
+        if now.elapsed().as_secs_f32() < 69905_f32 / (1 << 22) as f32 {
             return true;
         }
 
         now = Instant::now();
 
         // Get input
-        game_boy.update_input(&basic_input);
+        game_boy.update_input(basic_input);
 
         // Simulate one frame on Game Boy
         game_boy.run_frame();

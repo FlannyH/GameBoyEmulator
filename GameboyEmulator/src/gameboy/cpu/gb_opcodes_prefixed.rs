@@ -30,10 +30,10 @@ impl GameBoy {
         }
 
         // Ignore bit instruction, otherwise write the value to the register
-        if (0x40..=0x7F).contains(&opcode) == false {
+        if !(0x40..=0x7F).contains(&opcode) {
             self.store_reg(opcode & 0x07, value_to_store);
         }
 
-        return true;
+        true
     }
 }

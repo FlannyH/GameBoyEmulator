@@ -11,7 +11,7 @@ enum LcdInterruptMasks {
 }
 
 impl GameBoy {
-    pub(in crate) fn run_ppu_cycle(&mut self) {
+    pub(crate) fn run_ppu_cycle(&mut self) {
         let ppu_y_prev = self.ppu_ly;
         if self.io[0x40] & 0x80 == 0 {
             self.ppu_dots_into_curr_line = 0;
@@ -46,10 +46,10 @@ impl GameBoy {
                     for sprite_base_address in (0x00..0xA0).step_by(4) {
                         // OAM entry order: Y, X, tile, attributes
                         if (self.ppu_ly..self.ppu_ly + sprite_8_or_16 as u8)
-                            .contains(&(self.oam[sprite_base_address + 0].wrapping_sub(9)))
+                            .contains(&(self.oam[sprite_base_address].wrapping_sub(9)))
                         {
                             self.ppu_sprite_buffer.push(OamEntry {
-                                posy: self.oam[sprite_base_address + 0],
+                                posy: self.oam[sprite_base_address],
                                 posx: self.oam[sprite_base_address + 1],
                                 tile: self.oam[sprite_base_address + 2],
                                 attr: self.oam[sprite_base_address + 3],
@@ -84,7 +84,7 @@ impl GameBoy {
                 if (self.io[0x40] & (1 << 5) > 0)
                     && (self.io[0x4B] - 7 <= self.ppu_lx)
                     && (self.ppu_ly >= self.io[0x4A])
-                    && self.window_is_rendering == false
+                    && !self.window_is_rendering
                 {
                     // Set window enable flag in PPU
                     self.window_is_rendering = true;
@@ -108,21 +108,19 @@ impl GameBoy {
                     let mut tile_index_sample_address: usize = 0x9800;
 
                     // If the window is rendering, use a different bit to check what tile map to use
-                    if self.window_is_rendering == false {
+                    if !self.window_is_rendering {
                         if (self.io[0x40] & (1 << 3)) > 0 {
                             tile_index_sample_address += 0x0400;
                         }
-                    } else {
-                        if (self.io[0x40] & (1 << 6)) > 0 {
-                            tile_index_sample_address += 0x0400;
-                        }
+                    } else if (self.io[0x40] & (1 << 6)) > 0 {
+                        tile_index_sample_address += 0x0400;
                     }
 
-                    tile_index_sample_address += 0x001 * ((self.ppu_tilemap_x as usize) >> 3);
+                    tile_index_sample_address += (self.ppu_tilemap_x as usize) >> 3;
                     tile_index_sample_address += 0x020 * ((self.ppu_tilemap_y as usize) >> 3);
 
                     // Get tile index from memory
-                    let tile_index = self.vram[tile_index_sample_address as usize & 0x1FFF];
+                    let tile_index = self.vram[tile_index_sample_address & 0x1FFF];
 
                     // Create tile data index
                     let mut tile_data_sample_address: usize = 0x8000;
@@ -134,7 +132,7 @@ impl GameBoy {
                     }
 
                     // Load 2 bytes (1 rows of pixels)
-                    let row_low = self.vram[(tile_data_sample_address + 0) & 0x1FFF];
+                    let row_low = self.vram[tile_data_sample_address & 0x1FFF];
                     let row_high = self.vram[(tile_data_sample_address + 1) & 0x1FFF];
 
                     // Parse them into color indices
@@ -155,7 +153,7 @@ impl GameBoy {
                 }
 
                 // If sprites are enabled in LCD control
-                if self.io[0x40] & (1 << 1) > 0 {
+                if (self.io[0x40] & (1 << 1)) > 0 {
                     // Loop over each sprite in this scanline
                     for sprite in &self.ppu_sprite_buffer {
                         if sprite.posx == self.ppu_lx.wrapping_add(8)
@@ -175,7 +173,7 @@ impl GameBoy {
                             }
 
                             // Load the row of pixels
-                            let row_low = self.vram[(tile_data_sample_address + 0) & 0x1FFF];
+                            let row_low = self.vram[tile_data_sample_address & 0x1FFF];
                             let row_high = self.vram[(tile_data_sample_address + 1) & 0x1FFF];
 
                             // Mix it into the queue
@@ -252,7 +250,7 @@ impl GameBoy {
 
                 if self.ppu_lx == 160 {
                     // Clear FIFO
-                    while self.ppu_fifo.len() > 0 {
+                    while !self.ppu_fifo.is_empty() {
                         let _ = self.ppu_fifo.pop_front().unwrap();
                     }
                     self.ppu_dots_into_curr_mode = 0;

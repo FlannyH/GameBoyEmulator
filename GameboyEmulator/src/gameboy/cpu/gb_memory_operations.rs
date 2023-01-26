@@ -10,7 +10,7 @@ impl GameBoy {
                     return self.bios[address as usize];
                 }
 
-                if self.rom.len() > 0 {
+                if !self.rom.is_empty() {
                     self.rom[(address as usize) % self.rom.len()]
                 } else {
                     0xFF
@@ -18,7 +18,7 @@ impl GameBoy {
             }
             // ROM bank 1 or higher
             0x4000..=0x7FFF => {
-                if self.rom.len() > 0 {
+                if !self.rom.is_empty() {
                     self.rom[(0x4000 * (self.curr_rom_bank as usize)
                         + ((address & 0x3FFF) as usize))
                         % self.rom.len()]
@@ -38,7 +38,7 @@ impl GameBoy {
             // External RAM
             0xA000..=0xBFFF => {
                 if self.eram_chip_enabled {
-                    self.eram[address as usize & 0x1FFF + 0x2000 * self.curr_eram_bank as usize]
+                    self.eram[(address as usize & 0x1FFF) + 0x2000 * self.curr_eram_bank as usize]
                 } else {
                     0xFF
                 }
@@ -110,7 +110,8 @@ impl GameBoy {
             // External RAM
             0xA000..=0xBFFF => {
                 if self.eram_chip_enabled {
-                    self.eram[address as usize & 0x1FFF + 0x2000 * self.curr_eram_bank as usize] =
+                    self.eram
+                        [(address as usize & 0x1FFF) + 0x2000 * self.curr_eram_bank as usize] =
                         value;
                 } //else ignore
             }
@@ -142,7 +143,7 @@ impl GameBoy {
             // I/O registers
             0xFF00..=0xFF7F => {
                 // TODO: IO behaves differently per value
-                if self.handle_io_register_write(address, value) == false {
+                if !self.handle_io_register_write(address, value) {
                     println!("--Tried to access memory address ${:04X}, which is an IO register that isn't yet implemented!", address);
                     todo!();
                 }
@@ -159,7 +160,7 @@ impl GameBoy {
     pub(in super::super) fn fetch_next_byte_from_pc(&mut self) -> u8 {
         let byte = self.fetch_byte_from_memory(self.pc);
         self.pc += 1;
-        return byte;
+        byte
     }
     pub(in super::super) fn fetch_next_short_from_pc(&mut self) -> u16 {
         let byte1 = self.fetch_byte_from_memory(self.pc) as u16;
@@ -172,7 +173,7 @@ impl GameBoy {
         let byte1 = self.fetch_byte_from_memory(address) as u16;
         let address = address + 1;
         let byte2 = self.fetch_byte_from_memory(address) as u16;
-        return byte1 + byte2 << 8;
+        byte1 + (byte2 << 8)
     }
 
     pub(in super::super) fn store8_to_pointer16(&mut self, h: u8, l: u8, value: u8) {
