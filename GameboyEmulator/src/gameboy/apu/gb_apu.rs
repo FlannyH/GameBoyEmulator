@@ -9,6 +9,8 @@ const DUTY_CYCLES: [[u8; 8]; 4] = [
     [0, 1, 1, 1, 1, 1, 1, 0],
 ];
 
+const VOL_DIV: u16 = 128;
+
 impl GameBoy {
     // One cycle is one tick in the 1048576 Hz clock
     pub(in super::super) fn run_apu_cycle(&mut self) {
@@ -38,8 +40,8 @@ impl GameBoy {
         }
 
         if self.apu_buffer_write_index % (1 << 6) == 0 {
-            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2] = 0;
-            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 1] = 0;
+            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2] = 32767;
+            self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 1] = 32767;
         }
 
         self.handle_apu_channel_1();
@@ -53,15 +55,7 @@ impl GameBoy {
 
             let apu_source: SamplesBuffer<u16> =
                 SamplesBuffer::new(2, 32768, self.apu_buffer[self.apu_buffer_to_use]);
-            //match self
-            //    .apu_stream_handle
-            //    .play_raw(apu_source.convert_samples())
-            //{
-            //    Ok(_) => (),
-            //    Err(e) => {
-            //        println!("Audio error: {}", e);
-            //    }
-            //}
+                
             self.apu_sink.append(apu_source);
             self.apu_buffer_to_use ^= 1;
         }
@@ -93,12 +87,12 @@ impl GameBoy {
         if self.io[0x25] & 0b0001_0000 > 0 {
             self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2] +=
                 ((self.apu_sound_output[0] as u16) * (16 * ((self.io[0x24] >> 4) & 0x07) as u16))
-                    / 64;
+                    / VOL_DIV;
         }
         // Add channel 1 to apu buffer right
         if self.io[0x25] & 0b0000_0001 > 0 {
             self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 1] +=
-                ((self.apu_sound_output[0] as u16) * (16 * ((self.io[0x24]) & 0x07) as u16)) / 64;
+                ((self.apu_sound_output[0] as u16) * (16 * ((self.io[0x24]) & 0x07) as u16)) / VOL_DIV;
         }
     }
 
@@ -128,12 +122,12 @@ impl GameBoy {
         if self.io[0x25] & 0b0010_0000 > 0 {
             self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2] +=
                 ((self.apu_sound_output[1] as u16) * (16 * ((self.io[0x24] >> 4) & 0x07) as u16))
-                    / 64;
+                    / VOL_DIV;
         }
         // Add channel 2 to apu buffer right
         if self.io[0x25] & 0b0000_0010 > 0 {
             self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 1] +=
-                ((self.apu_sound_output[1] as u16) * (16 * ((self.io[0x24]) & 0x07) as u16)) / 64;
+                ((self.apu_sound_output[1] as u16) * (16 * ((self.io[0x24]) & 0x07) as u16)) / VOL_DIV;
         }
     }
 
@@ -172,12 +166,12 @@ impl GameBoy {
         if self.io[0x25] & 0b0100_0000 > 0 {
             self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2] +=
                 ((self.apu_sound_output[2] as u16) * (16 * ((self.io[0x24] >> 4) & 0x07) as u16))
-                    / 64;
+                    / VOL_DIV;
         }
         // Add channel 3 to apu buffer right
         if self.io[0x25] & 0b0000_0100 > 0 {
             self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 1] +=
-                ((self.apu_sound_output[2] as u16) * (16 * ((self.io[0x24]) & 0x07) as u16)) / 64;
+                ((self.apu_sound_output[2] as u16) * (16 * ((self.io[0x24]) & 0x07) as u16)) / VOL_DIV;
         }
     }
 
@@ -216,12 +210,12 @@ impl GameBoy {
         if self.io[0x25] & 0b1000_0000 > 0 {
             self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2] +=
                 ((self.apu_sound_output[3] as u16) * (16 * ((self.io[0x24] >> 4) & 0x07) as u16))
-                    / 64;
+                    / VOL_DIV;
         }
         // Add channel 4 to apu buffer right
         if self.io[0x25] & 0b0000_1000 > 0 {
             self.apu_buffer[self.apu_buffer_to_use][(self.apu_buffer_write_index >> 6) * 2 + 1] +=
-                ((self.apu_sound_output[3] as u16) * (16 * ((self.io[0x24]) & 0x07) as u16)) / 64;
+                ((self.apu_sound_output[3] as u16) * (16 * ((self.io[0x24]) & 0x07) as u16)) / VOL_DIV;
         }
     }
 
