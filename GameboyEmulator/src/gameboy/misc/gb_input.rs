@@ -1,24 +1,32 @@
-use crate::gameboy::GameBoy;
-use mini_gl_fb::{glutin::event::VirtualKeyCode, BasicInput};
+use crate::gameboy::{GameBoy, InputState};
 
 impl GameBoy {
-    pub(crate) fn update_input(&mut self, input: &BasicInput) {
-        let mut new_input = 0;
-        for key in [
-            /* Down   */ VirtualKeyCode::Down,
-            /* Up     */ VirtualKeyCode::Up,
-            /* Left   */ VirtualKeyCode::Left,
-            /* Right  */ VirtualKeyCode::Right,
-            /* Start  */ VirtualKeyCode::Return,
-            /* Select */ VirtualKeyCode::RShift,
-            /* B      */ VirtualKeyCode::Z,
-            /* A      */ VirtualKeyCode::X,
-        ] {
-            new_input <<= 1;
-            if input.key_is_down(key) {
-                new_input |= 0x01;
-            }
+    pub(crate) fn update_input(&mut self, state: &InputState) {
+        let mut new_state: u8 = 0;
+        if !state.down {
+            new_state |= 1 << 7
         }
-        self.joypad_state = !(new_input as u8);
+        if !state.up {
+            new_state |= 1 << 6
+        }
+        if !state.left {
+            new_state |= 1 << 5
+        }
+        if !state.right {
+            new_state |= 1 << 4
+        }
+        if !state.start {
+            new_state |= 1 << 3
+        }
+        if !state.select {
+            new_state |= 1 << 2
+        }
+        if !state.b {
+            new_state |= 1 << 1
+        }
+        if !state.a {
+            new_state |= 1 << 0
+        }
+        self.joypad_state = new_state;
     }
 }

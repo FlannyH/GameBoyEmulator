@@ -31,6 +31,18 @@ struct OamEntry {
 
 struct AudioSource {}
 
+#[derive(Default, Debug)]
+pub struct InputState {
+    pub down: bool,
+    pub up: bool,
+    pub left: bool,
+    pub right: bool,
+    pub start: bool,
+    pub select: bool,
+    pub b: bool,
+    pub a: bool,
+}
+
 pub struct GameBoy {
     // Memory Map
     bios: [u8; 0x100],
