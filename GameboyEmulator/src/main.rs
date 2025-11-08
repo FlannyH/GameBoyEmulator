@@ -1,4 +1,7 @@
-use std::{env, time::{Duration, Instant}};
+use std::{
+    env,
+    time::{Duration, Instant},
+};
 
 use minifb::{Key, Window, WindowOptions};
 
@@ -48,7 +51,7 @@ fn main() {
     let mut now = Instant::now();
     let mut input_state = InputState::default();
 
-    while window.is_open() {        
+    while window.is_open() {
         // Handle delta time
         let dt = now.elapsed().as_secs_f32();
         let desired_dt = 69905_f32 / (1 << 22) as f32;
